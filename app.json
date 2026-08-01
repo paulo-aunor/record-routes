@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "Record Routes",
+    "slug": "record-routes",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "scheme": "recordroutes",
+    "newArchEnabled": true,
+    "android": {
+      "package": "com.pauloaunor.recordroutes",
+      "adaptiveIcon": {
+        "backgroundColor": "#0a0a0a"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-asset"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "12c363e6-53d6-4cf1-8b08-c06630a87ac5"
+      }
+    },
+    "owner": "pauloaunor"
+  }
+}
