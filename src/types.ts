@@ -16,6 +16,7 @@ export interface Subscriber {
   routeId: RouteId;
   lat: number;
   lng: number;
+  schedule?: string;
 }
 
 export interface ShiftState {
@@ -26,4 +27,5 @@ export interface ShiftState {
   deliveredIds: string[];
   skippedIds: string[];
   orderedIds: string[];
+  deliveryDayIdx?: number;
 }

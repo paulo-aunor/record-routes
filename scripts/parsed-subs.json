@@ -1,0 +1,1196 @@
+{
+  "routes": {
+    "J13": [
+      {
+        "id": "J13-001",
+        "routeId": "J13",
+        "name": "LYNDA COYNE",
+        "address": "165 ALLEN ST E",
+        "postal": "N2J 1J7",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-002",
+        "routeId": "J13",
+        "name": "HERBERT & VE ZIEGLER",
+        "address": "169 ALLEN ST E",
+        "postal": "N2J 1J7",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-003",
+        "routeId": "J13",
+        "name": "BARB BUCKLEY",
+        "address": "205 ALLEN ST E",
+        "postal": "N2J 1J9",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-004",
+        "routeId": "J13",
+        "name": "STUART FORSTER",
+        "address": "215 ALLEN ST E",
+        "postal": "N2J 1J9",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-005",
+        "routeId": "J13",
+        "name": "DOREEN OLIENICK",
+        "address": "217 ALLEN ST E",
+        "postal": "N2J 1J9",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-006",
+        "routeId": "J13",
+        "name": "MARILYN CHAPESKIE",
+        "address": "233 ALLEN ST E",
+        "postal": "N2J 1K2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-007",
+        "routeId": "J13",
+        "name": "Dr ROBERT DUGGAN",
+        "address": "239 ALLEN ST E",
+        "postal": "N2J 1K4",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-008",
+        "routeId": "J13",
+        "name": "IONNE MORITZ",
+        "address": "98 BRAESIDE AVE",
+        "postal": "N2J 2C6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-009",
+        "routeId": "J13",
+        "name": "KATHIE WIGHTMAN",
+        "address": "103 BRAESIDE AVE",
+        "postal": "N2J 2C7",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-010",
+        "routeId": "J13",
+        "name": "DAVID JAARSMA",
+        "address": "109 BRAESIDE AVE",
+        "postal": "N2J 2C7",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-011",
+        "routeId": "J13",
+        "name": "PATRICE KORB",
+        "address": "147 BRIDGEPORT RD E",
+        "postal": "N2J 2K3",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-012",
+        "routeId": "J13",
+        "name": "GEORGE GREER",
+        "address": "164 BRISTOL ST",
+        "postal": "N2J 1H1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-013",
+        "routeId": "J13",
+        "name": "LESLIE BAMFORD",
+        "address": "173 BRISTOL ST",
+        "postal": "N2J 1H2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-014",
+        "routeId": "J13",
+        "name": "CAROL WILLIAMSON",
+        "address": "204 BRISTOL ST",
+        "postal": "N2J 1H3",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-015",
+        "routeId": "J13",
+        "name": "JOHN SCHWALM",
+        "address": "214 BRISTOL ST",
+        "postal": "N2J 1H3",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-016",
+        "routeId": "J13",
+        "name": "GRANT &JANET ERTEL",
+        "address": "216 BRISTOL ST",
+        "postal": "N2J 1H3",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-017",
+        "routeId": "J13",
+        "name": "D FEENEY",
+        "address": "177 CORNWALL ST",
+        "postal": "N2J 1H5",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-018",
+        "routeId": "J13",
+        "name": "JUANITA KUTCHCOSKI",
+        "address": "204 CORNWALL ST",
+        "postal": "N2J 1H8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-019",
+        "routeId": "J13",
+        "name": "LOIS CHALMERS",
+        "address": "210 CORNWALL ST",
+        "postal": "N2J 1H8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-020",
+        "routeId": "J13",
+        "name": "JAY BARD",
+        "address": "14 DEVITT AVE N",
+        "postal": "N2J 3E6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-021",
+        "routeId": "J13",
+        "name": "PAUL EICHINGER",
+        "address": "124 DEVITT AVE S",
+        "postal": "N2J 1Y8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-022",
+        "routeId": "J13",
+        "name": "EARL COOK",
+        "address": "47 DOVER ST",
+        "postal": "N2J 1Y9",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-023",
+        "routeId": "J13",
+        "name": "EDWARD LINDER",
+        "address": "53 DOVER ST",
+        "postal": "N2J 1Y9",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-024",
+        "routeId": "J13",
+        "name": "R SCHNEIDER",
+        "address": "79 DOVER ST",
+        "postal": "N2J 1Z2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-025",
+        "routeId": "J13",
+        "name": "NANCY GROSS",
+        "address": "81 DOVER ST",
+        "postal": "N2J 1Z2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-026",
+        "routeId": "J13",
+        "name": "CAROL ANDERSON",
+        "address": "91 DOVER ST",
+        "postal": "N2J 1Z2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-027",
+        "routeId": "J13",
+        "name": "ROBERT PAUL REAY",
+        "address": "100 DOVER ST",
+        "postal": "N2J 1Z4",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-028",
+        "routeId": "J13",
+        "name": "KYLE DAVID",
+        "address": "119 DOVER ST",
+        "postal": "N2J 1Z2",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-029",
+        "routeId": "J13",
+        "name": "GORDON ECCLESTONE",
+        "address": "61 ELLIS CRES S",
+        "postal": "N2J 2B5",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-030",
+        "routeId": "J13",
+        "name": "WES HESSELINK",
+        "address": "66 ELLIS CRES S",
+        "postal": "N2J 2B6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-031",
+        "routeId": "J13",
+        "name": "WILLIAM & JO BROWN",
+        "address": "84 ELLIS CRES S",
+        "postal": "N2J 2B8",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-032",
+        "routeId": "J13",
+        "name": "M E EVELEIGH",
+        "address": "152 ELLIS CRES S",
+        "postal": "N2J 2C4",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-033",
+        "routeId": "J13",
+        "name": "ANDREW BLAIR",
+        "address": "153 ELLIS CRES S",
+        "postal": "N2J 2C5",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-034",
+        "routeId": "J13",
+        "name": "PRISCILLA AYLOTT",
+        "address": "163 ERB ST E",
+        "postal": "N2J 1M5",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-035",
+        "routeId": "J13",
+        "name": "INGRID MCKINNON",
+        "address": "182 ERB ST E",
+        "postal": "N2J 1M6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-036",
+        "routeId": "J13",
+        "name": "CATHERINE COUSINEAU",
+        "address": "190 ERB ST E",
+        "postal": "N2J 1M6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-037",
+        "routeId": "J13",
+        "name": "ROBERT MIKOL",
+        "address": "198 ERB ST E",
+        "postal": "N2J 1M6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-038",
+        "routeId": "J13",
+        "name": "DAVID MARTIN",
+        "address": "208 ERB ST E APT A",
+        "postal": "N2J 1M6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-039",
+        "routeId": "J13",
+        "name": "GREG FRIDAY",
+        "address": "218 ERB ST E",
+        "postal": "N2J 1M6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-040",
+        "routeId": "J13",
+        "name": "KYLE LODER",
+        "address": "238 ERB ST E",
+        "postal": "N2J 1M8",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-041",
+        "routeId": "J13",
+        "name": "P MESSENT",
+        "address": "11 MARGARET AVE N",
+        "postal": "N2J 3P1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-042",
+        "routeId": "J13",
+        "name": "RONALD & MAR LITWILLER",
+        "address": "21 MARGARET AVE N",
+        "postal": "N2J 3P2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-043",
+        "routeId": "J13",
+        "name": "E B ASHFIELD",
+        "address": "49 MARGARET AVE S",
+        "postal": "N2J 2C8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-044",
+        "routeId": "J13",
+        "name": "PAT LANKVELD",
+        "address": "53 MARGARET AVE S",
+        "postal": "N2J 2C8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-045",
+        "routeId": "J13",
+        "name": "A KENDRICK",
+        "address": "117 MARGARET AVE S",
+        "postal": "N2J 2E1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-046",
+        "routeId": "J13",
+        "name": "PAUL RUDOW",
+        "address": "142 ORIOLE ST",
+        "postal": "N2J 2B4",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-047",
+        "routeId": "J13",
+        "name": "EMIKO TAKEDA",
+        "address": "143 ORIOLE ST",
+        "postal": "N2J 2B3",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-048",
+        "routeId": "J13",
+        "name": "ED GROVES",
+        "address": "145 ORIOLE ST",
+        "postal": "N2J 2B3",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-049",
+        "routeId": "J13",
+        "name": "GORDON LESYK",
+        "address": "159 ORIOLE ST",
+        "postal": "N2J 2B3",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-050",
+        "routeId": "J13",
+        "name": "COLLEEN SEMPLE",
+        "address": "245 PINEWOOD PL",
+        "postal": "N2J 1B3",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-051",
+        "routeId": "J13",
+        "name": "LAWRENCE GREAVES",
+        "address": "250 PINEWOOD PL",
+        "postal": "N2J 1B4",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-052",
+        "routeId": "J13",
+        "name": "R ELLIOTT",
+        "address": "255 PINEWOOD PL",
+        "postal": "N2J 1B3",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-053",
+        "routeId": "J13",
+        "name": "Ann Barrett",
+        "address": "258 PINEWOOD PL",
+        "postal": "N2J 1B4",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-054",
+        "routeId": "J13",
+        "name": "GEORGE TROHATOS",
+        "address": "180 RODNEY ST",
+        "postal": "N2J 1G3",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-055",
+        "routeId": "J13",
+        "name": "MARY-LOU MEISSGEIER",
+        "address": "198 RODNEY ST",
+        "postal": "N2J 1G5",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-056",
+        "routeId": "J13",
+        "name": "KATHY MULLIGAN",
+        "address": "207 RODNEY ST",
+        "postal": "N2J 1G6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-057",
+        "routeId": "J13",
+        "name": "PATRICIA DEITNER",
+        "address": "212 RODNEY ST",
+        "postal": "N2J 1G5",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-058",
+        "routeId": "J13",
+        "name": "ELIZABETH WERTH",
+        "address": "235 RODNEY ST",
+        "postal": "N2J 1G7",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-059",
+        "routeId": "J13",
+        "name": "JAMES GIBSON",
+        "address": "242 RODNEY ST",
+        "postal": "N2J 1G9",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-060",
+        "routeId": "J13",
+        "name": "TOM ANSTETT",
+        "address": "244 RODNEY ST",
+        "postal": "N2J 1G9",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-061",
+        "routeId": "J13",
+        "name": "HELEN CAMPBELL",
+        "address": "253 RODNEY ST",
+        "postal": "N2J 1G7",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-062",
+        "routeId": "J13",
+        "name": "KEVIN DURST",
+        "address": "191 ROYAL ST",
+        "postal": "N2J 2H8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-063",
+        "routeId": "J13",
+        "name": "WALTER/ROSE BESLER",
+        "address": "211 ROYAL ST",
+        "postal": "N2J 2H8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-064",
+        "routeId": "J13",
+        "name": "Jackie David",
+        "address": "231 ROYAL ST",
+        "postal": "N2J 2J1",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-065",
+        "routeId": "J13",
+        "name": "RUTH TURNER",
+        "address": "240 ROYAL ST",
+        "postal": "N2J 2J2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-066",
+        "routeId": "J13",
+        "name": "DONNA WRIGHT",
+        "address": "245 ROYAL ST",
+        "postal": "N2J 2J1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-067",
+        "routeId": "J13",
+        "name": "KEN HOLST",
+        "address": "248 ROYAL ST",
+        "postal": "N2J 2J2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-068",
+        "routeId": "J13",
+        "name": "MARILYN BEZNER",
+        "address": "249 ROYAL ST",
+        "postal": "N2J 2J1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-069",
+        "routeId": "J13",
+        "name": "GARLAND CRAWFORD",
+        "address": "174 UNION ST E",
+        "postal": "N2J 1C7",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-070",
+        "routeId": "J13",
+        "name": "LEO & KATHY- WEISS",
+        "address": "176 UNION ST E",
+        "postal": "N2J 1C7",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-071",
+        "routeId": "J13",
+        "name": "NICOLE DICKSON",
+        "address": "246 UNION ST E",
+        "postal": "N2J 1E2",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-072",
+        "routeId": "J13",
+        "name": "JAMIE TOMLINSON",
+        "address": "253 UNION ST E",
+        "postal": "N2J 1E3",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-073",
+        "routeId": "J13",
+        "name": "MEINEKE CAR CARE",
+        "address": "29 WEBER ST N",
+        "postal": "N2J 3G5",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-074",
+        "routeId": "J13",
+        "name": "CATHRINA CONGIPERRY CASH",
+        "address": "35 WEBER ST N",
+        "postal": "N2J 3G5",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-075",
+        "routeId": "J13",
+        "name": "TED GIBBONS",
+        "address": "60 WEBER ST S UNIT 6",
+        "postal": "N2J 1Z7",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-076",
+        "routeId": "J13",
+        "name": "D E HUGHES",
+        "address": "113 WEBER ST S",
+        "postal": "N2J 2A4",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-077",
+        "routeId": "J13",
+        "name": "STOCKIE CHRYSLER",
+        "address": "150 WEBER ST S",
+        "postal": "N2J 2A8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-078",
+        "routeId": "J13",
+        "name": "REMAX SOLID GOLD REALTY",
+        "address": "180 WEBER ST S",
+        "postal": "N2J 2B2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      }
+    ],
+    "J3": [
+      {
+        "id": "J3-001",
+        "routeId": "J3",
+        "name": "PAUL MARION AMY",
+        "address": "151 ALVIN ST",
+        "postal": "N2J 3J7",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-002",
+        "routeId": "J3",
+        "name": "KEN SONIER",
+        "address": "152 ALVIN ST",
+        "postal": "N2J 3J8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-003",
+        "routeId": "J3",
+        "name": "PAULINE COPLESTON",
+        "address": "153 ALVIN ST",
+        "postal": "N2J 3J7",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-004",
+        "routeId": "J3",
+        "name": "SYLVIA BOEGEL",
+        "address": "157 ALVIN ST",
+        "postal": "N2J 3J7",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-005",
+        "routeId": "J3",
+        "name": "JAMES POSER",
+        "address": "159 ALVIN ST",
+        "postal": "N2J 3J7",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-006",
+        "routeId": "J3",
+        "name": "WM GIES",
+        "address": "193 ASHCROFT PL",
+        "postal": "N2J 3M7",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-007",
+        "routeId": "J3",
+        "name": "CECILE MOTZ",
+        "address": "210 BELLEHAVEN DR",
+        "postal": "N2J 3L2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-008",
+        "routeId": "J3",
+        "name": "MATT ELLIOT",
+        "address": "212 BELLEHAVEN DR",
+        "postal": "N2J 3L2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-009",
+        "routeId": "J3",
+        "name": "BARRY MACLEOD",
+        "address": "214 BELLEHAVEN DR",
+        "postal": "N2J 3L2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-010",
+        "routeId": "J3",
+        "name": "KELLY KORNET WEBER",
+        "address": "231 BELLEHAVEN DR",
+        "postal": "N2J 3L5",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J3-011",
+        "routeId": "J3",
+        "name": "JOAN GIESEL",
+        "address": "245 BELLEHAVEN DR",
+        "postal": "N2J 3L5",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-012",
+        "routeId": "J3",
+        "name": "TRACY LIVINGSTON",
+        "address": "247 BELLEHAVEN DR",
+        "postal": "N2J 3L5",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-013",
+        "routeId": "J3",
+        "name": "PETER FILATO",
+        "address": "250 BELLEHAVEN DR",
+        "postal": "N2J 3L6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-014",
+        "routeId": "J3",
+        "name": "JOE MILLER",
+        "address": "254 BELLEHAVEN DR",
+        "postal": "N2J 3L6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-015",
+        "routeId": "J3",
+        "name": "LUCY BILSON",
+        "address": "182 CARTER AVE",
+        "postal": "N2J 3K4",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J3-016",
+        "routeId": "J3",
+        "name": "H LIGTERINK",
+        "address": "204 CARTER AVE",
+        "postal": "N2J 3K4",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-017",
+        "routeId": "J3",
+        "name": "MARG HEARN",
+        "address": "222 CARTER AVE",
+        "postal": "N2J 3K6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-018",
+        "routeId": "J3",
+        "name": "JOHN SCHWEITZER",
+        "address": "225 CARTER AVE",
+        "postal": "N2J 3K7",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-019",
+        "routeId": "J3",
+        "name": "JOHN CAROL WATKINS",
+        "address": "208 DIXIE CRES",
+        "postal": "N2J 3L1",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J3-020",
+        "routeId": "J3",
+        "name": "INGRID NARDELLA",
+        "address": "210 DIXIE CRES",
+        "postal": "N2J 3L1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-021",
+        "routeId": "J3",
+        "name": "G J BECKENHAUER",
+        "address": "212 DIXIE CRES",
+        "postal": "N2J 3L1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-022",
+        "routeId": "J3",
+        "name": "CARL ACKERL",
+        "address": "217 DIXIE CRES",
+        "postal": "N2J 3K9",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-023",
+        "routeId": "J3",
+        "name": "BEVERLY SUDERMANGLADWELL",
+        "address": "172 LINCOLN RD",
+        "postal": "N2J 2P1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-024",
+        "routeId": "J3",
+        "name": "BILL GOTTFRIED",
+        "address": "173 LINCOLN RD",
+        "postal": "N2J 2P2",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J3-025",
+        "routeId": "J3",
+        "name": "VINCE&DEONNE CERULLO",
+        "address": "109 MACKAY CRES",
+        "postal": "N2J 3K1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-026",
+        "routeId": "J3",
+        "name": "ANDREW CALDER",
+        "address": "115 MACKAY CRES",
+        "postal": "N2J 3K1",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J3-027",
+        "routeId": "J3",
+        "name": "MARY ANN WASYLYCIA",
+        "address": "127 MACKAY CRES",
+        "postal": "N2J 3K1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-028",
+        "routeId": "J3",
+        "name": "BENTE FOSTER",
+        "address": "143 MACKAY CRES",
+        "postal": "N2J 3K1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-029",
+        "routeId": "J3",
+        "name": "PEGGIE NICOLSON",
+        "address": "149 MACKAY CRES",
+        "postal": "N2J 3K1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-030",
+        "routeId": "J3",
+        "name": "RONALD MERKLE",
+        "address": "131 MARSHALL ST",
+        "postal": "N2J 4E6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-031",
+        "routeId": "J3",
+        "name": "GEORGE ILGAUDS",
+        "address": "163 MARSHALL ST",
+        "postal": "N2J 2T8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-032",
+        "routeId": "J3",
+        "name": "JOY BETTSCHEN",
+        "address": "164 MARSHALL ST",
+        "postal": "N2J 2T9",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-033",
+        "routeId": "J3",
+        "name": "BETSY TRIANTAFILOU",
+        "address": "168 MARSHALL ST",
+        "postal": "N2J 2T9",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-034",
+        "routeId": "J3",
+        "name": "MARY L GODWIN",
+        "address": "173 MARSHALL ST",
+        "postal": "N2J 2T8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-035",
+        "routeId": "J3",
+        "name": "J G & S NELSON",
+        "address": "185 MARSHALL ST",
+        "postal": "N2J 2T8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-036",
+        "routeId": "J3",
+        "name": "EMILY HUNSBERGER",
+        "address": "193 MARSHALL ST",
+        "postal": "N2J 2T8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-037",
+        "routeId": "J3",
+        "name": "ED & KAREN NOWAK",
+        "address": "198 MARSHALL ST",
+        "postal": "N2J 2V1",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J3-038",
+        "routeId": "J3",
+        "name": "REG BARSOUM",
+        "address": "207 MARSHALL ST",
+        "postal": "N2J 2T8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-039",
+        "routeId": "J3",
+        "name": "SUSAN HART",
+        "address": "121 UNIVERSITY AVE E APT 25",
+        "postal": "N2J 4J1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-040",
+        "routeId": "J3",
+        "name": "ROBERT A LILLIES",
+        "address": "121 UNIVERSITY AVE E APT 47",
+        "postal": "N2J 4J1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-041",
+        "routeId": "J3",
+        "name": "NATHAN MANTEY",
+        "address": "121 UNIVERSITY AVE E APT 71",
+        "postal": "N2J 4J1",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J3-042",
+        "routeId": "J3",
+        "name": "ISABEL MCDONALD",
+        "address": "121 UNIVERSITY AVE E APT 89",
+        "postal": "N2J 4J1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-043",
+        "routeId": "J3",
+        "name": "PENELOPE VOROBYOVA",
+        "address": "121 UNIVERSITY AVE E UNIT 8",
+        "postal": "N2J 4J1",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J3-044",
+        "routeId": "J3",
+        "name": "E HORRIGAN",
+        "address": "206 WILLOWDALE AVE",
+        "postal": "N2J 3M1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-045",
+        "routeId": "J3",
+        "name": "GLORIA BELL",
+        "address": "208 WILLOWDALE AVE",
+        "postal": "N2J 3M1",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J3-046",
+        "routeId": "J3",
+        "name": "GEORGE ROTH",
+        "address": "212 WILLOWDALE AVE",
+        "postal": "N2J 3M1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-047",
+        "routeId": "J3",
+        "name": "MAGNELL ROBINSON",
+        "address": "220 WILLOWDALE AVE",
+        "postal": "N2J 3M1",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J3-048",
+        "routeId": "J3",
+        "name": "Philip Sharman",
+        "address": "226 WILLOWDALE AVE",
+        "postal": "N2J 3M1",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J3-049",
+        "routeId": "J3",
+        "name": "WALTER DELNET",
+        "address": "228 WILLOWDALE AVE",
+        "postal": "N2J 3M1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-050",
+        "routeId": "J3",
+        "name": "KEITH POVEY",
+        "address": "243 WILLOWDALE AVE",
+        "postal": "N2J 3M3",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-051",
+        "routeId": "J3",
+        "name": "MARK WHALEY",
+        "address": "258 WILLOWDALE PL",
+        "postal": "N2J 3M4",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J3-052",
+        "routeId": "J3",
+        "name": "BOB GUENTHER",
+        "address": "218 WINFIELD AVE",
+        "postal": "N2J 3M9",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J3-053",
+        "routeId": "J3",
+        "name": "G SOMMERSTORFER",
+        "address": "246 WINFIELD AVE",
+        "postal": "N2J 3M9",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J3-054",
+        "routeId": "J3",
+        "name": "DEIRDRE NALLY",
+        "address": "254 WINFIELD AVE",
+        "postal": "N2J 3M9",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      }
+    ]
+  }
+}

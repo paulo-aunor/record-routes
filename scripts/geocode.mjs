@@ -24,7 +24,7 @@ async function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
 function parseSubscribersTs(source) {
   const rows = [];
-  const re = /\{\s*id:\s*"([^"]+)",\s*routeId:\s*"([^"]+)",\s*name:\s*"([^"]+)",\s*address:\s*"([^"]+)",\s*postal:\s*"([^"]+)",\s*city:\s*"([^"]+)"\s*\}/g;
+  const re = /\{\s*id:\s*"([^"]+)",\s*routeId:\s*"([^"]+)",\s*name:\s*"([^"]+)",\s*address:\s*"([^"]+)",\s*postal:\s*"([^"]+)",\s*city:\s*"([^"]+)"(?:[^}]*)\}/g;
   let m;
   while ((m = re.exec(source)) !== null) {
     rows.push({ id: m[1], routeId: m[2], name: m[3], address: m[4], postal: m[5], city: m[6] });

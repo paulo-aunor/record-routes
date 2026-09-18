@@ -26,6 +26,13 @@
         "projectId": "12c363e6-53d6-4cf1-8b08-c06630a87ac5"
       }
     },
-    "owner": "pauloaunor"
+    "owner": "pauloaunor",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/12c363e6-53d6-4cf1-8b08-c06630a87ac5"
+    },
+    "ios": {}
   }
 }

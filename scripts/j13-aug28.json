@@ -1,0 +1,708 @@
+{
+  "routes": {
+    "J13": [
+      {
+        "id": "J13-001",
+        "routeId": "J13",
+        "name": "WRDly WAT DEPOT LYNDA COYNE",
+        "address": "165 ALLEN ST E",
+        "postal": "N2J 1J7",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-002",
+        "routeId": "J13",
+        "name": "PUT IN MAILBOX OR BETWEEN DOORSHERBERT & VE ZIEGLER",
+        "address": "169 ALLEN ST E",
+        "postal": "N2J 1J7",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-003",
+        "routeId": "J13",
+        "name": "plz deliver INSIDE MAILBOX-SENIOR CUSTOMERBARB BUCKLEY",
+        "address": "205 ALLEN ST E",
+        "postal": "N2J 1J9",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-004",
+        "routeId": "J13",
+        "name": "MAILBOX AT THE GARAGE DOORSTUART FORSTER",
+        "address": "215 ALLEN ST E",
+        "postal": "N2J 1J9",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-005",
+        "routeId": "J13",
+        "name": "SIDE DOOR MAILBOXDOREEN OLIENICK",
+        "address": "217 ALLEN ST E",
+        "postal": "N2J 1J9",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-006",
+        "routeId": "J13",
+        "name": "MAILBOXMARILYN CHAPESKIE",
+        "address": "233 ALLEN ST E",
+        "postal": "N2J 1K2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-007",
+        "routeId": "J13",
+        "name": "PLEASE DELIVER NEWSPAPER IN THE MAILBOX AND PLEASE PUT HOOKS BAGGED IN PLASTIC BAG REGULARLY - ELDERLY WITH MOBILITY ISSUES.Dr ROBERT DUGGAN",
+        "address": "239 ALLEN ST E",
+        "postal": "N2J 1K4",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-008",
+        "routeId": "J13",
+        "name": "BAG - MAILBOXIONNE MORITZ",
+        "address": "98 BRAESIDE AVE",
+        "postal": "N2J 2C6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-009",
+        "routeId": "J13",
+        "name": "PUT PAPER INSIDE MAILSLOT BY GARAGE DOORKATHIE WIGHTMAN",
+        "address": "103 BRAESIDE AVE",
+        "postal": "N2J 2C7",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-010",
+        "routeId": "J13",
+        "name": "FRONT DOORDAVID JAARSMA",
+        "address": "109 BRAESIDE AVE",
+        "postal": "N2J 2C7",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-011",
+        "routeId": "J13",
+        "name": "PATRICE KORB",
+        "address": "147 BRIDGEPORT RD E",
+        "postal": "N2J 2K3",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-012",
+        "routeId": "J13",
+        "name": "GEORGE GREER",
+        "address": "164 BRISTOL ST",
+        "postal": "N2J 1H1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-013",
+        "routeId": "J13",
+        "name": "LESLIE BAMFORD",
+        "address": "173 BRISTOL ST",
+        "postal": "N2J 1H2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-014",
+        "routeId": "J13",
+        "name": "MAILBOX - Disabled customerJOHN SCHWALM",
+        "address": "214 BRISTOL ST",
+        "postal": "N2J 1H3",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-015",
+        "routeId": "J13",
+        "name": "MAIL SLOTGRANT &JANET ERTEL",
+        "address": "216 BRISTOL ST",
+        "postal": "N2J 1H3",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-016",
+        "routeId": "J13",
+        "name": "deliver to porch everyday please elderly coupleD FEENEY",
+        "address": "177 CORNWALL ST",
+        "postal": "N2J 1H5",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-017",
+        "routeId": "J13",
+        "name": "MAILBOXJUANITA KUTCHCOSKI",
+        "address": "204 CORNWALL ST",
+        "postal": "N2J 1H8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-018",
+        "routeId": "J13",
+        "name": "DELIVER PAPER TO MAILBOXLOIS CHALMERS",
+        "address": "210 CORNWALL ST",
+        "postal": "N2J 1H8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-019",
+        "routeId": "J13",
+        "name": "kindly deliver the paper to-210IONA CAM HILL",
+        "address": "215 CORNWALL ST",
+        "postal": "N2J 1H7",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-020",
+        "routeId": "J13",
+        "name": "DELIVER TO MAILBOXJAY BARD",
+        "address": "14 DEVITT AVE N",
+        "postal": "N2J 3E6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-021",
+        "routeId": "J13",
+        "name": "PUT PAPER INSIDE BACK PORCHPAUL EICHINGER",
+        "address": "124 DEVITT AVE S",
+        "postal": "N2J 1Y8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-022",
+        "routeId": "J13",
+        "name": "ND FRNT DOOR TURN LEFT AND PUT IN MLBXEARL COOK",
+        "address": "47 DOVER ST",
+        "postal": "N2J 1Y9",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-023",
+        "routeId": "J13",
+        "name": "PLS PUT PAPER INSIDE SUN/SIDE PORCHEDWARD LINDER",
+        "address": "53 DOVER ST",
+        "postal": "N2J 1Y9",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-024",
+        "routeId": "J13",
+        "name": "PUT IN MAILBOXR SCHNEIDER",
+        "address": "79 DOVER ST",
+        "postal": "N2J 1Z2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-025",
+        "routeId": "J13",
+        "name": "NANCY GROSS",
+        "address": "81 DOVER ST",
+        "postal": "N2J 1Z2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-026",
+        "routeId": "J13",
+        "name": "regularlyCAROL ANDERSON",
+        "address": "91 DOVER ST",
+        "postal": "N2J 1Z2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-027",
+        "routeId": "J13",
+        "name": "PUT IN MAILBOXROBERT PAUL REAY",
+        "address": "100 DOVER ST",
+        "postal": "N2J 1Z4",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-028",
+        "routeId": "J13",
+        "name": "FRONT PORCHKYLE DAVID",
+        "address": "119 DOVER ST",
+        "postal": "N2J 1Z2",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-029",
+        "routeId": "J13",
+        "name": "GORDON ECCLESTONE",
+        "address": "61 ELLIS CRES S",
+        "postal": "N2J 2B5",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-030",
+        "routeId": "J13",
+        "name": "Elderly requested to the mailbox regularlyWES HESSELINK",
+        "address": "66 ELLIS CRES S",
+        "postal": "N2J 2B6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-031",
+        "routeId": "J13",
+        "name": "WILLIAM & JO BROWN",
+        "address": "84 ELLIS CRES S",
+        "postal": "N2J 2B8",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-032",
+        "routeId": "J13",
+        "name": "MAILBOXM E EVELEIGH",
+        "address": "152 ELLIS CRES S",
+        "postal": "N2J 2C4",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-033",
+        "routeId": "J13",
+        "name": "DEL TO SIDE IN MAILBOX BY GARAGEANDREW BLAIR",
+        "address": "153 ELLIS CRES S",
+        "postal": "N2J 2C5",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-034",
+        "routeId": "J13",
+        "name": "PRISCILLA AYLOTT",
+        "address": "163 ERB ST E",
+        "postal": "N2J 1M5",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-035",
+        "routeId": "J13",
+        "name": "Please deliver the paper on the front porch.INGRID MCKINNON",
+        "address": "182 ERB ST E",
+        "postal": "N2J 1M6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-036",
+        "routeId": "J13",
+        "name": "MAILBOXROBERT MIKOL",
+        "address": "198 ERB ST E",
+        "postal": "N2J 1M6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-037",
+        "routeId": "J13",
+        "name": "Please put inside the MailboxDAVID MARTIN",
+        "address": "208 ERB ST E APT A",
+        "postal": "N2J 1M6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-038",
+        "routeId": "J13",
+        "name": "GREG FRIDAY",
+        "address": "218 ERB ST E",
+        "postal": "N2J 1M6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-039",
+        "routeId": "J13",
+        "name": "PUT IN MAILBOXKYLE LODER",
+        "address": "238 ERB ST E",
+        "postal": "N2J 1M8",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-040",
+        "routeId": "J13",
+        "name": "P MESSENT",
+        "address": "11 MARGARET AVE N",
+        "postal": "N2J 3P1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-041",
+        "routeId": "J13",
+        "name": "PUT IN MAILBOXRONALD & MAR LITWILLER",
+        "address": "21 MARGARET AVE N",
+        "postal": "N2J 3P2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-042",
+        "routeId": "J13",
+        "name": "Elderly customer, please deliver to the Front Porch regularlyE B ASHFIELD",
+        "address": "49 MARGARET AVE S",
+        "postal": "N2J 2C8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-043",
+        "routeId": "J13",
+        "name": "DELIVER THE PAPER IN THE MAILBOXPAT LANKVELD",
+        "address": "53 MARGARET AVE S",
+        "postal": "N2J 2C8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-044",
+        "routeId": "J13",
+        "name": "BAG & LEAVE ON PORCHA KENDRICK",
+        "address": "117 MARGARET AVE S",
+        "postal": "N2J 2E1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-045",
+        "routeId": "J13",
+        "name": "MAILBOXEMIKO TAKEDA",
+        "address": "143 ORIOLE ST",
+        "postal": "N2J 2B3",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-046",
+        "routeId": "J13",
+        "name": "ED GROVES",
+        "address": "145 ORIOLE ST",
+        "postal": "N2J 2B3",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-047",
+        "routeId": "J13",
+        "name": "Elderly subs, deliver right to the front door regularly never on the roadGORDON LESYK",
+        "address": "159 ORIOLE ST",
+        "postal": "N2J 2B3",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-048",
+        "routeId": "J13",
+        "name": "JR ALLEN",
+        "address": "239 PINEWOOD PL",
+        "postal": "N2J 1B3",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-049",
+        "routeId": "J13",
+        "name": "COLLEEN SEMPLE",
+        "address": "245 PINEWOOD PL",
+        "postal": "N2J 1B3",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-050",
+        "routeId": "J13",
+        "name": "LAWRENCE GREAVES",
+        "address": "250 PINEWOOD PL",
+        "postal": "N2J 1B4",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-051",
+        "routeId": "J13",
+        "name": "R ELLIOTT",
+        "address": "255 PINEWOOD PL",
+        "postal": "N2J 1B3",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-052",
+        "routeId": "J13",
+        "name": "PUT PAPER IN mailboxAnn Barrett",
+        "address": "258 PINEWOOD PL",
+        "postal": "N2J 1B4",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-053",
+        "routeId": "J13",
+        "name": "GEORGE TROHATOS",
+        "address": "180 RODNEY ST",
+        "postal": "N2J 1G3",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-054",
+        "routeId": "J13",
+        "name": "MARY-LOU MEISSGEIER",
+        "address": "198 RODNEY ST",
+        "postal": "N2J 1G5",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-055",
+        "routeId": "J13",
+        "name": "PUT PAPER IN MAILBOX EVERYDAYKATHY MULLIGAN",
+        "address": "207 RODNEY ST",
+        "postal": "N2J 1G6",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-056",
+        "routeId": "J13",
+        "name": "PATRICIA DEITNER",
+        "address": "212 RODNEY ST",
+        "postal": "N2J 1G5",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-057",
+        "routeId": "J13",
+        "name": "Please deliver to the Mailbox regularlyELIZABETH WERTH",
+        "address": "235 RODNEY ST",
+        "postal": "N2J 1G7",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-058",
+        "routeId": "J13",
+        "name": "MAILBOX BY GARAGEJAMES GIBSON",
+        "address": "242 RODNEY ST",
+        "postal": "N2J 1G9",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-059",
+        "routeId": "J13",
+        "name": "TOM ANSTETT",
+        "address": "244 RODNEY ST",
+        "postal": "N2J 1G9",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-060",
+        "routeId": "J13",
+        "name": "ROSS & KRYST MILLER",
+        "address": "252 RODNEY ST",
+        "postal": "N2J 1G9",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-061",
+        "routeId": "J13",
+        "name": "HELEN CAMPBELL",
+        "address": "253 RODNEY ST",
+        "postal": "N2J 1G7",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-062",
+        "routeId": "J13",
+        "name": "DELIVER PAPER TO MAILBOXKEVIN DURST",
+        "address": "191 ROYAL ST",
+        "postal": "N2J 2H8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-063",
+        "routeId": "J13",
+        "name": "FRONT PORCH PLEASEWALTER/ROSE BESLER",
+        "address": "211 ROYAL ST",
+        "postal": "N2J 2H8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-064",
+        "routeId": "J13",
+        "name": "Elderly person, please deliver to the front porch or mailboxJackie David",
+        "address": "231 ROYAL ST",
+        "postal": "N2J 2J1",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-065",
+        "routeId": "J13",
+        "name": "RUTH TURNER",
+        "address": "240 ROYAL ST",
+        "postal": "N2J 2J2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-066",
+        "routeId": "J13",
+        "name": "Customer is handicap, please leave the paper between the doorsDONNA WRIGHT",
+        "address": "245 ROYAL ST",
+        "postal": "N2J 2J1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-067",
+        "routeId": "J13",
+        "name": "MAILBOXKEN HOLST",
+        "address": "248 ROYAL ST",
+        "postal": "N2J 2J2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-068",
+        "routeId": "J13",
+        "name": "PUT IN MAILBOX-DLVR NY TIMES ON SAT PLSMARILYN BEZNER",
+        "address": "249 ROYAL ST",
+        "postal": "N2J 2J1",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-069",
+        "routeId": "J13",
+        "name": "FRONT PORCHGARLAND CRAWFORD",
+        "address": "174 UNION ST E",
+        "postal": "N2J 1C7",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-070",
+        "routeId": "J13",
+        "name": "LEO & KATHY- WEISS",
+        "address": "176 UNION ST E",
+        "postal": "N2J 1C7",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-071",
+        "routeId": "J13",
+        "name": "PUT PAPER IN FRONT MAILBOXNICOLE DICKSON",
+        "address": "246 UNION ST E",
+        "postal": "N2J 1E2",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-072",
+        "routeId": "J13",
+        "name": "PUT IN MILKBOX BESIDE SIDE DOORJAMIE TOMLINSON",
+        "address": "253 UNION ST E",
+        "postal": "N2J 1E3",
+        "city": "Waterloo",
+        "schedule": "FriSat"
+      },
+      {
+        "id": "J13-073",
+        "routeId": "J13",
+        "name": "MEINEKE CAR CARE",
+        "address": "29 WEBER ST N",
+        "postal": "N2J 3G5",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-074",
+        "routeId": "J13",
+        "name": "DELIVER TO DOOR AT MEINEKE CAR CAREPERRY CASH",
+        "address": "35 WEBER ST N",
+        "postal": "N2J 3G5",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-075",
+        "routeId": "J13",
+        "name": "TED GIBBONS",
+        "address": "60 WEBER ST S UNIT 6",
+        "postal": "N2J 1Z7",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-076",
+        "routeId": "J13",
+        "name": "D E HUGHES",
+        "address": "113 WEBER ST S",
+        "postal": "N2J 2A4",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-077",
+        "routeId": "J13",
+        "name": "PUT IN BOX AT SIDEDOOR BREEZEWAY ELDERLY CANNOT WALKSTOCKIE CHRYSLER",
+        "address": "150 WEBER ST S",
+        "postal": "N2J 2A8",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      },
+      {
+        "id": "J13-078",
+        "routeId": "J13",
+        "name": "REMAX SOLID GOLD REALTY",
+        "address": "180 WEBER ST S",
+        "postal": "N2J 2B2",
+        "city": "Waterloo",
+        "schedule": "Mon-Sat"
+      }
+    ]
+  }
+}

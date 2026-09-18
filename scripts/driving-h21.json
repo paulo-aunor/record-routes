@@ -1,0 +1,394 @@
+[
+  {
+    "startLine": 21,
+    "endLine": 26,
+    "house": "217",
+    "apt": null,
+    "name": "MAYHEW BRENDA & JEF",
+    "instruction": "the computer- generated directions. PAPER IN MAILBOX DAILY"
+  },
+  {
+    "startLine": 32,
+    "endLine": 37,
+    "house": "176",
+    "apt": "3",
+    "name": "HOLDENMEYER RICHARD",
+    "instruction": "MAILBOX AT SIDE ENTRANCE ON AHRENS ST"
+  },
+  {
+    "startLine": 44,
+    "endLine": 49,
+    "house": "280",
+    "apt": null,
+    "name": "CHICORLI BRIAN",
+    "instruction": "front door front step"
+  },
+  {
+    "startLine": 53,
+    "endLine": 58,
+    "house": "279",
+    "apt": null,
+    "name": "WINGE ANNE",
+    "instruction": "PUT PAPER IN MAILBOX"
+  },
+  {
+    "startLine": 59,
+    "endLine": 64,
+    "house": "276",
+    "apt": null,
+    "name": "MICHAEL MARK",
+    "instruction": ""
+  },
+  {
+    "startLine": 66,
+    "endLine": 71,
+    "house": "247",
+    "apt": null,
+    "name": "LIPPERT KEN",
+    "instruction": "MAILBOX"
+  },
+  {
+    "startLine": 74,
+    "endLine": 79,
+    "house": "157",
+    "apt": "12",
+    "name": "YACK LARRY",
+    "instruction": "dlv to back door balcony on left"
+  },
+  {
+    "startLine": 82,
+    "endLine": 87,
+    "house": "154",
+    "apt": null,
+    "name": "KOEBEL DOLORES",
+    "instruction": "Elderly customer on walker, requested delivery to the front porch regularly"
+  },
+  {
+    "startLine": 90,
+    "endLine": 95,
+    "house": "169",
+    "apt": null,
+    "name": "WALTER NATHALIE",
+    "instruction": "PLEASE DELIVER THE PAPERS TO THE FRONT PORCH."
+  },
+  {
+    "startLine": 111,
+    "endLine": 116,
+    "house": "235",
+    "apt": null,
+    "name": "PARIS FASHIONS",
+    "instruction": "MUST DELIVER PAPER TO FRONT DOOR IN A PLASTIC BAG. THANK YOU"
+  },
+  {
+    "startLine": 119,
+    "endLine": 124,
+    "house": "159",
+    "apt": null,
+    "name": "RADTKE EDNA",
+    "instruction": "LOUISA ST MAILBOX"
+  },
+  {
+    "startLine": 125,
+    "endLine": 130,
+    "house": "156",
+    "apt": null,
+    "name": "CORTI BARBARA",
+    "instruction": ""
+  },
+  {
+    "startLine": 131,
+    "endLine": 136,
+    "house": "152",
+    "apt": null,
+    "name": "FOBEL RYAN",
+    "instruction": ""
+  },
+  {
+    "startLine": 138,
+    "endLine": 143,
+    "house": "125",
+    "apt": null,
+    "name": "BAULK VICKI",
+    "instruction": "LOUISA ST"
+  },
+  {
+    "startLine": 145,
+    "endLine": 150,
+    "house": "121",
+    "apt": null,
+    "name": "WILLIAMS JUNE",
+    "instruction": "PUT IN MAILBOX/PROBLEM BENDING"
+  },
+  {
+    "startLine": 152,
+    "endLine": 157,
+    "house": "113",
+    "apt": null,
+    "name": "NEATH JOANNE",
+    "instruction": "Pls deliver the paper on the front door"
+  },
+  {
+    "startLine": 160,
+    "endLine": 165,
+    "house": "86",
+    "apt": null,
+    "name": "SMITH BRYAN & IREN",
+    "instruction": "LOUISA ST BAG PPR TO FRONT DOOR"
+  },
+  {
+    "startLine": 169,
+    "endLine": 174,
+    "house": "385",
+    "apt": null,
+    "name": "OWENS CATHERINE",
+    "instruction": ""
+  },
+  {
+    "startLine": 178,
+    "endLine": 183,
+    "house": "80",
+    "apt": null,
+    "name": "MCDONALD STEPHEN",
+    "instruction": ""
+  },
+  {
+    "startLine": 186,
+    "endLine": 191,
+    "house": "58",
+    "apt": null,
+    "name": "KILGOUR MARC   JOAN",
+    "instruction": "LOUISA ST BAG FRONT DOOR-ELDERLY"
+  },
+  {
+    "startLine": 196,
+    "endLine": 201,
+    "house": "63",
+    "apt": null,
+    "name": "PHILLIPS T",
+    "instruction": ""
+  },
+  {
+    "startLine": 205,
+    "endLine": 210,
+    "house": "329",
+    "apt": null,
+    "name": "BARD ROBERT",
+    "instruction": "Elderly customer, please ensure the paper is on the porch or the mailbox reguarly"
+  },
+  {
+    "startLine": 215,
+    "endLine": 220,
+    "house": "149",
+    "apt": null,
+    "name": "MURAWSKY PAUL D & MAR",
+    "instruction": "PUT PAPER INSIDE FRONT PORCH"
+  },
+  {
+    "startLine": 224,
+    "endLine": 229,
+    "house": "146",
+    "apt": null,
+    "name": "JOSEPH DON",
+    "instruction": "Back Door."
+  },
+  {
+    "startLine": 242,
+    "endLine": 247,
+    "house": "140",
+    "apt": "1",
+    "name": "REITZEL BILL",
+    "instruction": "MOBILITY ISSUES - MOBILITY ISSUES - MAILBOX"
+  },
+  {
+    "startLine": 252,
+    "endLine": 257,
+    "house": "28",
+    "apt": null,
+    "name": "PAQUETTE C GERALDINE",
+    "instruction": "VR -- DUKE ST W"
+  },
+  {
+    "startLine": 262,
+    "endLine": 267,
+    "house": "463",
+    "apt": null,
+    "name": "LAZARSKI JOAN M & TED",
+    "instruction": "ON PORCH BY FRONT DOOR"
+  },
+  {
+    "startLine": 270,
+    "endLine": 275,
+    "house": "532",
+    "apt": null,
+    "name": "SLUGASKE J",
+    "instruction": "DUKE ST W DEL PPR TO MILKBOX BY SIDE DOOR"
+  },
+  {
+    "startLine": 277,
+    "endLine": 282,
+    "house": "164",
+    "apt": null,
+    "name": "BROSCHEK JORG",
+    "instruction": ""
+  },
+  {
+    "startLine": 285,
+    "endLine": 290,
+    "house": "123",
+    "apt": null,
+    "name": "GENERAL AIR PRODUCTS & SYSTEM",
+    "instruction": "WATERLOO ST Please deliver to the front porch reguarly"
+  },
+  {
+    "startLine": 294,
+    "endLine": 299,
+    "house": "133",
+    "apt": null,
+    "name": "DIEBOLD JOE",
+    "instruction": "Elderly customer on walker, please deliver to Veranda regularly"
+  },
+  {
+    "startLine": 306,
+    "endLine": 311,
+    "house": "128",
+    "apt": null,
+    "name": "MIEDEMA WAYNE",
+    "instruction": "MAILBOX"
+  },
+  {
+    "startLine": 314,
+    "endLine": 319,
+    "house": "93",
+    "apt": null,
+    "name": "HORNER DUANE",
+    "instruction": ""
+  },
+  {
+    "startLine": 321,
+    "endLine": 326,
+    "house": "98",
+    "apt": null,
+    "name": "WAGNER JOHN   HELEN",
+    "instruction": "Verandah - cust is old"
+  },
+  {
+    "startLine": 329,
+    "endLine": 334,
+    "house": "64",
+    "apt": null,
+    "name": "DONALD ROBERT",
+    "instruction": "please deliver the paper in the driveway"
+  },
+  {
+    "startLine": 337,
+    "endLine": 342,
+    "house": "136",
+    "apt": "5",
+    "name": "HORNYAK ROSEMARY",
+    "instruction": "LOBBY DROP"
+  },
+  {
+    "startLine": 347,
+    "endLine": 352,
+    "house": "224",
+    "apt": null,
+    "name": "FRANK GEORGE",
+    "instruction": "FRONT MAILBOX- DISABLED CUSTOMER"
+  },
+  {
+    "startLine": 365,
+    "endLine": 370,
+    "house": "225",
+    "apt": null,
+    "name": "PARADIS CHARLOTTE",
+    "instruction": "Elderly customer, please deliver to the Mailbox regularly"
+  },
+  {
+    "startLine": 374,
+    "endLine": 379,
+    "house": "41",
+    "apt": null,
+    "name": "KIRBY KATHLEEN",
+    "instruction": "INSIDE THE MAILBOX , PLEASE DON'T WRAP THE NEWSPAPER IN THE BAG."
+  },
+  {
+    "startLine": 381,
+    "endLine": 386,
+    "house": "32",
+    "apt": null,
+    "name": "PETERSON MARK",
+    "instruction": "DEL TO SIDE OF HOUSE"
+  },
+  {
+    "startLine": 389,
+    "endLine": 394,
+    "house": "26",
+    "apt": null,
+    "name": "RESCH LINDA",
+    "instruction": "Edlerly customer on walker, please deliver to the driveway beside the house not on the roa"
+  },
+  {
+    "startLine": 396,
+    "endLine": 401,
+    "house": "10",
+    "apt": null,
+    "name": "MCCARTHY KIM",
+    "instruction": "SIDE DOOR MAILBOX"
+  },
+  {
+    "startLine": 404,
+    "endLine": 409,
+    "house": "206",
+    "apt": null,
+    "name": "LYNCH LARRY",
+    "instruction": "BETWEEN FRONT DOORS"
+  },
+  {
+    "startLine": 412,
+    "endLine": 417,
+    "house": "40",
+    "apt": null,
+    "name": "VAINO TOI",
+    "instruction": "PAPER ON RACK INSIDE SIDE DOOR"
+  },
+  {
+    "startLine": 419,
+    "endLine": 424,
+    "house": "47",
+    "apt": null,
+    "name": "SOEDER DAVE & LINDA",
+    "instruction": "DEL TO FRONT"
+  },
+  {
+    "startLine": 430,
+    "endLine": 435,
+    "house": "188",
+    "apt": null,
+    "name": "PAGETT DAVE  PATTI",
+    "instruction": "PUT INSIDE FRONT PORCH- FACING MOORE-DO NOT THROW IN DRIVEWAY"
+  },
+  {
+    "startLine": 438,
+    "endLine": 443,
+    "house": "58",
+    "apt": null,
+    "name": "ROSENBUSCH MAXINE",
+    "instruction": "Elderly customer, please deliver inside the Mailbox regularly"
+  },
+  {
+    "startLine": 449,
+    "endLine": 454,
+    "house": "65",
+    "apt": null,
+    "name": "PARKER DAWN",
+    "instruction": "BAG FRONT PORCH-CUST HAS HEALTH ISSUES"
+  },
+  {
+    "startLine": 457,
+    "endLine": 462,
+    "house": "21",
+    "apt": null,
+    "name": "CHEATER WAYNE",
+    "instruction": "DELIVER ON THE PORCH"
+  }
+]
