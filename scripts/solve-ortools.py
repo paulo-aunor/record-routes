@@ -13,6 +13,10 @@ ap.add_argument("route")
 ap.add_argument("--sec", type=int, default=30)
 args = ap.parse_args()
 
+# G7's truck drop is 160 King St E (Kitchener), not the Waterloo library.
+# Other routes still start at the library.
+DEPOT_KEY = "g7Depot" if args.route == "G7" else "library"
+
 # Subs in data but confirmed absent from latest depot PDF. Kept in data (may re-subscribe)
 # but excluded from seed order so they don't distort OR-Tools' route.
 EXCLUDE = {
@@ -28,8 +32,9 @@ stops = [s for s, r in subs if r == args.route and s not in EXCLUDE]
 
 print(f"{args.route}: {len(stops)} stops (excluded {sum(1 for s, r in subs if r == args.route and s in EXCLUDE)} ghosts)")
 
-# Coord list: library + stops
-coords = [(geo["library"]["lng"], geo["library"]["lat"])]
+# Coord list: depot (library, or G7's own drop) + stops
+depot = geo[DEPOT_KEY]
+coords = [(depot["lng"], depot["lat"])]
 for id_ in stops: coords.append((geo["stops"][id_]["lng"], geo["stops"][id_]["lat"]))
 
 # Fetch OSRM distance matrix

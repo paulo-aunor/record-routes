@@ -1,4 +1,4 @@
-export type RouteId = "H21" | "J3" | "J13";
+export type RouteId = "H21" | "J3" | "J13" | "G7";
 
 export interface Route {
   id: RouteId;

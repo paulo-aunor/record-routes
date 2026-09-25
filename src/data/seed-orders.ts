@@ -1,6 +1,7 @@
 // Hardcoded seed orders per route set. Used on the FIRST shift when no saved order exists.
 // Once a shift finishes, its final order (post drag-reorder) overwrites the seed via saveLastOrder.
-// Precomputed 2026-09-10 via OR-Tools GUIDED_LOCAL_SEARCH on real OSRM driving-distance matrices.
+// Precomputed via OR-Tools GUIDED_LOCAL_SEARCH on real OSRM driving-distance matrices.
+// H21/J3/J13 recomputed 2026-09-10; G7 added 2026-09-25 (starts at 160 King St E depot, not library).
 // 7 subs excluded as "ghosts" (present in data but absent from the Sept depot PDF; they'll append
 // at the end of any shift via mergeOrder if they qualify — drag into place if they come back).
 
@@ -43,5 +44,15 @@ export const SEED_ORDERS: Record<string, string[]> = {
     "J13-082", "J13-027", "J13-012", "J13-013", "J13-014", "J13-015", "J13-016",
     "J13-080", "J13-019", "J13-018", "J13-017", "J13-003", "J13-004", "J13-005",
     "J13-031", "J13-083", "J13-030", "J13-029",
+  ],
+  // G7 — OR-Tools optimized: 47 stops · 5.16 km · 13.9 min (verified via /route, starting from 160 King St E)
+  "G7": [
+    "G7-016", "G7-017", "G7-018", "G7-043", "G7-012", "G7-001", "G7-002",
+    "G7-003", "G7-004", "G7-005", "G7-006", "G7-007", "G7-047", "G7-044",
+    "G7-045", "G7-046", "G7-019", "G7-020", "G7-041", "G7-042", "G7-040",
+    "G7-039", "G7-038", "G7-037", "G7-036", "G7-035", "G7-034", "G7-033",
+    "G7-032", "G7-031", "G7-030", "G7-029", "G7-028", "G7-027", "G7-026",
+    "G7-025", "G7-024", "G7-023", "G7-022", "G7-021", "G7-011", "G7-010",
+    "G7-009", "G7-008", "G7-014", "G7-015", "G7-013",
   ],
 };
