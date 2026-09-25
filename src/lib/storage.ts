@@ -2,9 +2,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { RouteId, ShiftState } from "@/types";
 
 const KEY_PREFIX = "@rr/shift/";
-// v7: bumped 2026-09-10 for Sept subscriber sync (6 adds + 7 exclusions) + fresh OR-Tools seeds.
-// Fresh start = OR-Tools seed wins.
-const LAST_ORDER_PREFIX = "@rr/lastOrder/v7/";
+// v8: bumped 2026-09-18 to discard weekday saved orders whose FriSat stops were
+// tail-appended by the pre-fix mergeOrder. First shift after upgrade rebuilds
+// from seed, which has FriSat correctly nested by OR-Tools.
+const LAST_ORDER_PREFIX = "@rr/lastOrder/v8/";
 
 export function todayKey(): string {
   const d = new Date();
