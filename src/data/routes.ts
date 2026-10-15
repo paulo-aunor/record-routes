@@ -5,6 +5,7 @@ export const ROUTES: Route[] = [
   { id: "J3", code: "N2J00003", city: "Waterloo", postalPrefix: "N2J" },
   { id: "J13", code: "N2J00013", city: "Waterloo", postalPrefix: "N2J" },
   { id: "G7", code: "N2G00007", city: "Kitchener", postalPrefix: "N2G" },
+  { id: "G11", code: "N2G00011", city: "Kitchener", postalPrefix: "N2G" },
 ];
 
 export const LIBRARY = {

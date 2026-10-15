@@ -2,10 +2,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { RouteId, ShiftState } from "@/types";
 
 const KEY_PREFIX = "@rr/shift/";
-// v8: bumped 2026-09-18 to discard weekday saved orders whose FriSat stops were
-// tail-appended by the pre-fix mergeOrder. First shift after upgrade rebuilds
-// from seed, which has FriSat correctly nested by OR-Tools.
-const LAST_ORDER_PREFIX = "@rr/lastOrder/v8/";
+// v10: bumped 2026-10-14 for H21 reroute from 250 Pinewood Pl (bundles with the
+// G11 add + J13 pivot in the same build). Any previously-installed v9 saved
+// orders would stomp the new H21 seed.
+const LAST_ORDER_PREFIX = "@rr/lastOrder/v10/";
 
 export function todayKey(): string {
   const d = new Date();

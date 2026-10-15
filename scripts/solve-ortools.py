@@ -9,13 +9,25 @@ import json, re, sys, urllib.request, urllib.parse, ssl, argparse
 from ortools.constraint_solver import pywrapcp, routing_enums_pb2
 
 ap = argparse.ArgumentParser()
-ap.add_argument("route")
+ap.add_argument("route", help="H21|J3|J13|G7|G11|J13-PIVOT")
 ap.add_argument("--sec", type=int, default=30)
 args = ap.parse_args()
 
-# G7's truck drop is 160 King St E (Kitchener), not the Waterloo library.
-# Other routes still start at the library.
-DEPOT_KEY = "g7Depot" if args.route == "G7" else "library"
+# Per-route start points. J13-PIVOT is a special mode: solve J13 starting from
+# 172 Lincoln Rd (Waterloo), excluding the first 4 stops of the original seed —
+# Paulo delivers 14 Devitt, 53 Dover, 47 Dover, 163 Erb first, then starts fresh.
+if args.route == "G7":
+    DEPOT_KEY, PRE_KEEP = "g7Depot", []
+elif args.route == "G11":
+    DEPOT_KEY, PRE_KEEP = "g11Start", []
+elif args.route == "H21":
+    DEPOT_KEY, PRE_KEEP = "h21Start", []
+elif args.route == "J13-PIVOT":
+    DEPOT_KEY = "j13PostPivotStart"
+    PRE_KEEP = ["J13-020", "J13-023", "J13-022", "J13-034"]
+    args.route = "J13"
+else:
+    DEPOT_KEY, PRE_KEEP = "library", []
 
 # Subs in data but confirmed absent from latest depot PDF. Kept in data (may re-subscribe)
 # but excluded from seed order so they don't distort OR-Tools' route.
@@ -28,9 +40,9 @@ EXCLUDE = {
 with open("../src/data/subscribers.geocoded.json") as f: geo = json.load(f)
 with open("../src/data/subscribers.ts") as f: src = f.read()
 subs = [(m.group(1), m.group(2)) for m in re.finditer(r'\{ id: "([^"]+)", routeId: "([^"]+)"', src)]
-stops = [s for s, r in subs if r == args.route and s not in EXCLUDE]
+stops = [s for s, r in subs if r == args.route and s not in EXCLUDE and s not in set(PRE_KEEP)]
 
-print(f"{args.route}: {len(stops)} stops (excluded {sum(1 for s, r in subs if r == args.route and s in EXCLUDE)} ghosts)")
+print(f"{args.route}: {len(stops)} stops (excluded {sum(1 for s, r in subs if r == args.route and s in EXCLUDE)} ghosts, {len(PRE_KEEP)} pre-kept)")
 
 # Coord list: depot (library, or G7's own drop) + stops
 depot = geo[DEPOT_KEY]
@@ -86,8 +98,8 @@ while not routing.IsEnd(idx):
     if node != 0 and node != END_NODE: tour.append(node)
     idx = solution.Value(routing.NextVar(idx))
 
-# Convert node indices to stop IDs
-ordered_ids = [stops[i - 1] for i in tour]
+# Convert node indices to stop IDs, prepending any pre-kept stops
+ordered_ids = PRE_KEEP + [stops[i - 1] for i in tour]
 
 # Compute total matrix distance
 total = 0
