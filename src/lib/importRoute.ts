@@ -1,7 +1,7 @@
 import { anchorIdsFor } from "@/data/anchors";
 import type { Subscriber } from "@/types";
 import { matrixIdFor } from "./matrixAlias";
-import { optimize, type Coord } from "./optimizer-v2";
+import { insertStops, optimize, type Coord } from "./optimizer-v2";
 import { deriveRouteId, type ParsedRoute, type ParsedSub } from "./pdfRouteList";
 import type { ImportedRoute } from "./registry-core";
 
@@ -43,12 +43,21 @@ export type BuiltRoute = {
   estimatedStops: number;     // stops whose distances are straight-line estimates
 };
 
-export function buildImportedRoute(
+// What an update did to a route that already existed.
+export type RouteChanges = {
+  kept: number;
+  added: Subscriber[];                // on the new PDF, not on the route before
+  removed: Subscriber[];              // on the route before, not on the new PDF
+  idMap: ReadonlyMap<string, string>; // old id -> new id for every house that stayed
+};
+
+export type UpdatedRoute = BuiltRoute & { changes: RouteChanges };
+
+function placeSubscribers(
   parsed: ParsedRoute,
   coords: readonly (Coord | null)[],
-  now: number,
-  carry: ReadonlyMap<string, string> = new Map(),
-): BuiltRoute {
+  carry: ReadonlyMap<string, string>,
+): { id: string; subs: Subscriber[]; unplaced: ParsedSub[] } {
   if (coords.length !== parsed.subs.length) throw new Error("importRoute: coordinates don't line up with the stops.");
   const id = deriveRouteId(parsed.code);
   const taken = new Set<string>();
@@ -72,6 +81,25 @@ export function buildImportedRoute(
     });
   });
   if (subs.length === 0) throw new Error(`None of the ${parsed.subs.length} addresses on ${parsed.code} could be located.`);
+  return { id, subs, unplaced };
+}
+
+function routeRecord(parsed: ParsedRoute, id: string, subs: readonly Subscriber[]): ImportedRoute["route"] {
+  return {
+    id,
+    code: parsed.code,
+    city: mostCommon(subs.map((s) => s.city)),
+    postalPrefix: mostCommon(subs.map((s) => s.postal.slice(0, 3))),
+  };
+}
+
+export function buildImportedRoute(
+  parsed: ParsedRoute,
+  coords: readonly (Coord | null)[],
+  now: number,
+  carry: ReadonlyMap<string, string> = new Map(),
+): BuiltRoute {
+  const { id, subs, unplaced } = placeSubscribers(parsed, coords, carry);
 
   const byId = new Map(subs.map((s) => [s.id, { lat: s.lat, lng: s.lng }]));
   const addressOf = new Map(subs.map((s) => [s.id, matrixIdFor(s.address, s.city)]));
@@ -85,12 +113,7 @@ export function buildImportedRoute(
 
   return {
     imported: {
-      route: {
-        id,
-        code: parsed.code,
-        city: mostCommon(subs.map((s) => s.city)),
-        postalPrefix: mostCommon(subs.map((s) => s.postal.slice(0, 3))),
-      },
+      route: routeRecord(parsed, id, subs),
       importedAt: now,
       subs,
       seed: solved.orderedIds,
@@ -98,5 +121,74 @@ export function buildImportedRoute(
     unplaced,
     seedKm: solved.distanceM / 1000,
     estimatedStops: solved.estimatedStops,
+  };
+}
+
+// Update a route that already exists from a newer full list. Houses are matched
+// by address. Those still listed keep their place in `existing.order`, houses new
+// to the list are slotted in where they add the least driving, and houses no
+// longer listed are dropped. `existing.order` must cover every house in `existing.subs`.
+export function buildUpdatedRoute(
+  parsed: ParsedRoute,
+  coords: readonly (Coord | null)[],
+  now: number,
+  carry: ReadonlyMap<string, string>,
+  existing: { subs: readonly Subscriber[]; order: readonly string[] },
+): UpdatedRoute {
+  const { id, subs, unplaced } = placeSubscribers(parsed, coords, carry);
+
+  const oldById = new Map(existing.subs.map((s) => [s.id, s]));
+  for (const oid of existing.order) if (!oldById.has(oid)) throw new Error(`updateRoute: ${oid} is in the order but not on the route.`);
+  if (new Set(existing.order).size !== existing.subs.length || existing.order.length !== existing.subs.length) {
+    throw new Error("updateRoute: the existing order doesn't list each house exactly once.");
+  }
+
+  // Pair old and new houses sharing an address, in route order on the old side and
+  // list order on the new side, so two apartments at one address pair up one to one.
+  const waiting = new Map<string, Subscriber[]>();
+  for (const s of subs) {
+    const k = addressNoteKey(s.address);
+    waiting.set(k, [...(waiting.get(k) ?? []), s]);
+  }
+  const idMap = new Map<string, string>();
+  const removed: Subscriber[] = [];
+  const paired = new Set<string>();
+  for (const oid of existing.order) {
+    const old = oldById.get(oid)!;
+    const candidates = waiting.get(addressNoteKey(old.address));
+    const next = candidates?.shift();
+    if (next) { idMap.set(oid, next.id); paired.add(next.id); } else removed.push(old);
+  }
+  const added = subs.filter((s) => !paired.has(s.id));
+
+  // Anchored houses (J13's first nine) always lead, wherever the update finds them.
+  const anchors = anchorIdsFor([id], subs);
+  const anchorSet = new Set(anchors);
+  const body = existing.order.flatMap((oid) => {
+    const nid = idMap.get(oid);
+    return nid && !anchorSet.has(nid) ? [nid] : [];
+  });
+
+  const byId = new Map(subs.map((s) => [s.id, { lat: s.lat, lng: s.lng }]));
+  const addressOf = new Map(subs.map((s) => [s.id, matrixIdFor(s.address, s.city)]));
+  const placed = insertStops({
+    order: [...anchors, ...body],
+    newIds: added.filter((s) => !anchorSet.has(s.id)).map((s) => s.id),
+    fixedPrefix: anchors.length,
+    coordOf: (x) => byId.get(x),
+    matrixIdOf: (x) => addressOf.get(x),
+  });
+
+  return {
+    imported: {
+      route: routeRecord(parsed, id, subs),
+      importedAt: now,
+      subs,
+      seed: placed.orderedIds,
+    },
+    unplaced,
+    seedKm: placed.distanceM / 1000,
+    estimatedStops: placed.estimatedStops,
+    changes: { kept: idMap.size, added, removed, idMap },
   };
 }

@@ -39,6 +39,11 @@ const GPS_START = "__gps_start__";
 const CIRCUITY = 1.4;            // straight line -> road distance in KW (median of 60k sampled pairs: 1.33-1.44)
 const LIBRARY_COORD: Coord = { lat: LIBRARY.lat, lng: LIBRARY.lng };
 
+function matrixRowFor(id: string, matrixIdOf?: (id: string) => string | undefined): string | undefined {
+  if (id === GPS_START) return undefined;
+  return matrixIdOf?.(id) ?? (matrixHasId(id) ? id : undefined);
+}
+
 function haversineM(a: Coord, b: Coord): number {
   const R = 6_371_000;
   const toR = (x: number) => (x * Math.PI) / 180;
@@ -267,7 +272,7 @@ export function optimize(input: OptimizeInput): OptimizeResult {
   // Node 0 is the start, then the fixed prefix, then the stops to order.
   const ids = [startKey, ...preKeep, ...stops];
   // Which matrix row (if any) stands in for each node; the GPS start has none.
-  const mid = ids.map((id) => (id === GPS_START ? undefined : input.matrixIdOf?.(id) ?? (matrixHasId(id) ? id : undefined)));
+  const mid = ids.map((id) => matrixRowFor(id, input.matrixIdOf));
   const table = buildTable(ids, mid, coordFor);
   if (input.startCoord) snapStart(table, ids, mid, input.startCoord, coordFor);
   const preIdx = preKeep.map((_, k) => 1 + k);
@@ -288,5 +293,65 @@ export function optimize(input: OptimizeInput): OptimizeResult {
     iterations: twoOptMoves + orOptMoves + polishGains,
     elapsedMs: Date.now() - t0,
     estimatedStops: mid.slice(1 + preKeep.length).filter((m) => m === undefined).length,
+  };
+}
+
+export type InsertInput = {
+  order: readonly string[];      // the existing order from the library; kept exactly as given
+  newIds: readonly string[];     // stops to place into it
+  fixedPrefix?: number;          // the first N stops of `order` stay at the front; nothing goes in before them
+  coordOf: (id: string) => Coord | undefined;
+  matrixIdOf?: (id: string) => string | undefined;
+};
+
+export type InsertResult = {
+  orderedIds: string[];
+  distanceM: number;             // total over the result, first leg included
+  estimatedStops: number;        // stops whose distances came from the straight-line estimate
+};
+
+// Adds stops to an order that already exists without disturbing it. Each round
+// puts in whichever (stop, position) pair adds the least driving, so a new house
+// lands beside the houses it is nearest to, and one-way streets count because
+// the table is directional.
+export function insertStops(input: InsertInput): InsertResult {
+  const ids = [LIBRARY_ID, ...input.order, ...input.newIds];
+  if (new Set(ids).size !== ids.length) throw new Error("insertStops: a stop appears twice.");
+  const floor = input.fixedPrefix ?? 0;
+  if (floor < 0 || floor > input.order.length) throw new Error("insertStops: fixedPrefix is longer than the order.");
+
+  const coordFor = (id: string): Coord => {
+    if (id === LIBRARY_ID) return LIBRARY_COORD;
+    const c = input.coordOf(id);
+    if (!c) throw new Error(`insertStops: no coordinates for ${id}`);
+    return c;
+  };
+  const mid = ids.map((id) => matrixRowFor(id, input.matrixIdOf));
+  const t = buildTable(ids, mid, coordFor);
+
+  const order: number[] = input.order.map((_, k) => 1 + k);
+  const pending: number[] = input.newIds.map((_, k) => 1 + input.order.length + k);
+
+  while (pending.length > 0) {
+    let bestCost = Infinity;
+    let bestPending = -1;
+    let bestPos = -1;
+    for (let p = 0; p < pending.length; p++) {
+      const x = pending[p];
+      for (let pos = floor; pos <= order.length; pos++) {
+        const prev = pos === 0 ? 0 : order[pos - 1];
+        const cost =
+          t.d[prev * t.n + x] + (pos < order.length ? t.d[x * t.n + order[pos]] - t.d[prev * t.n + order[pos]] : 0);
+        if (cost < bestCost) { bestCost = cost; bestPending = p; bestPos = pos; }
+      }
+    }
+    order.splice(bestPos, 0, pending[bestPending]);
+    pending.splice(bestPending, 1);
+  }
+
+  return {
+    orderedIds: order.map((k) => ids[k]),
+    distanceM: pathLength(t, 0, order),
+    estimatedStops: mid.slice(1).filter((m) => m === undefined).length,
   };
 }
