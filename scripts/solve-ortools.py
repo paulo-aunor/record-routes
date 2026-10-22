@@ -16,26 +16,25 @@ args = ap.parse_args()
 # Per-route start points. J13-PIVOT is a special mode: solve J13 starting from
 # 172 Lincoln Rd (Waterloo), excluding the first 4 stops of the original seed —
 # Paulo delivers 14 Devitt, 53 Dover, 47 Dover, 163 Erb first, then starts fresh.
-if args.route == "G7":
-    DEPOT_KEY, PRE_KEEP = "g7Depot", []
-elif args.route == "G11":
-    DEPOT_KEY, PRE_KEEP = "g11Start", []
-elif args.route == "H21":
-    DEPOT_KEY, PRE_KEEP = "h21Start", []
-elif args.route == "J13-PIVOT":
-    DEPOT_KEY = "j13PostPivotStart"
-    PRE_KEEP = ["J13-020", "J13-023", "J13-022", "J13-034"]
+if args.route == "J13-PIVOT":
+    # Paulo always delivers these 9 J13 houses first on any J13 shift, in this
+    # order. The matrix depot is the LAST pre-kept stop (238 Erb St E), so the
+    # solver picks the real next neighbour from there instead of pretending to
+    # restart at some other point.
+    DEPOT_KEY = None  # resolved below from PRE_KEEP[-1]
+    PRE_KEEP = [
+        "J13-020", "J13-023", "J13-022", "J13-034", "J13-035",
+        "J13-037", "J13-038", "J13-039", "J13-040",
+    ]
     args.route = "J13"
 else:
+    # Every standalone route starts from the Waterloo library. Paulo loads all
+    # 5 route bundles there, drives out to each route individually.
     DEPOT_KEY, PRE_KEEP = "library", []
 
-# Subs in data but confirmed absent from latest depot PDF. Kept in data (may re-subscribe)
-# but excluded from seed order so they don't distort OR-Tools' route.
-EXCLUDE = {
-    "H21-003", "H21-008", "H21-025",   # gone since Sept PDF
-    "J3-012",  "J3-043",               # gone since Sept PDF
-    "J13-036", "J13-062",              # 190 Erb still gone; 191 Royal newly gone
-}
+# No subs are excluded from the solve; every house ships in the seed. Paulo
+# toggles individual houses on/off via the app's per-house Stop setting.
+EXCLUDE: set[str] = set()
 
 with open("../src/data/subscribers.geocoded.json") as f: geo = json.load(f)
 with open("../src/data/subscribers.ts") as f: src = f.read()
@@ -44,8 +43,10 @@ stops = [s for s, r in subs if r == args.route and s not in EXCLUDE and s not in
 
 print(f"{args.route}: {len(stops)} stops (excluded {sum(1 for s, r in subs if r == args.route and s in EXCLUDE)} ghosts, {len(PRE_KEEP)} pre-kept)")
 
-# Coord list: depot (library, or G7's own drop) + stops
-depot = geo[DEPOT_KEY]
+# Coord list: depot + stops. Depot is either a named point (library) or, for a
+# route with PRE_KEEP, the last pre-kept stop so the solver picks the real next
+# neighbour from where Paulo actually is.
+depot = geo[DEPOT_KEY] if DEPOT_KEY else geo["stops"][PRE_KEEP[-1]]
 coords = [(depot["lng"], depot["lat"])]
 for id_ in stops: coords.append((geo["stops"][id_]["lng"], geo["stops"][id_]["lat"]))
 
