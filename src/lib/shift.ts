@@ -1,14 +1,38 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { RouteId, ShiftState } from "@/types";
-import { LIBRARY } from "@/data/routes";
-import { subscribersForRoutesOn } from "@/data/subscribers";
+import { anchorIdsFor } from "@/data/anchors";
 import { SEED_ORDERS } from "@/data/seed-orders";
-import { optimize } from "./optimizer";
+import { isAtLibrary } from "./location";
+import { matrixIdFor } from "./matrixAlias";
+import { optimize as optimizeV2, type Coord } from "./optimizer-v2";
+import {
+  allSubscribers, importedSeed, isImportedRoute, revisionTag, subscribersForRoutesOn,
+} from "./registry";
 import { todayDayIndex } from "./schedule";
 import {
   loadShift, saveShift, todayKey, newShift, clearShift,
   loadLastOrder, saveLastOrder, routeSetKey,
 } from "./storage";
+
+// Coordinates for every house that currently exists, imported routes included.
+function coordLookup(): (id: string) => Coord | undefined {
+  const byId = new Map<string, Coord>(allSubscribers().map((s) => [s.id, { lat: s.lat, lng: s.lng }]));
+  return (id) => byId.get(id);
+}
+
+// Lets an imported house borrow the real driving distances of the built-in house at the same address.
+function matrixLookup(): (id: string) => string | undefined {
+  const byId = new Map<string, string | undefined>(allSubscribers().map((s) => [s.id, matrixIdFor(s.address, s.city)]));
+  return (id) => byId.get(id);
+}
+
+// Lets the "Finding your route" state paint before the solver blocks the JS thread.
+const nextFrame = () => new Promise<void>((resolve) => setTimeout(resolve, 30));
+
+export type StartOptions = {
+  startCoord?: Coord;              // live GPS fix; ignored when it's at the library
+  excludeIds?: readonly string[];  // stopped houses, left out of the solve
+};
 
 // Merge a preferred order (from last shift or seed) with today's eligible stops.
 // Kept stops keep their preferred position; newcomers are spliced next to their
@@ -66,19 +90,39 @@ function mergeOrder(preferred: string[], eligibleIds: string[], seed: string[] |
   return result;
 }
 
-// Look up a seed for the exact route combination, falling back to concatenating
-// individual route seeds where a combined-key seed is missing. Lets "H21+J13" reuse
-// H21 driving order + J13 driving order without needing a hand-built combined seed.
-function getSeedOrder(routeIds: readonly string[]): string[] | null {
-  const exact = SEED_ORDERS[routeSetKey(routeIds)];
-  if (exact && exact.length) return exact;
-  const sorted = [...routeIds].sort();
-  const combined: string[] = [];
-  for (const r of sorted) {
-    const seed = SEED_ORDERS[r];
-    if (seed && seed.length) combined.push(...seed);
+// Exact pre-baked seed for this route set, or null when nothing matches.
+// Subsets without an exact seed fall through to the on-device TS optimizer in
+// start() instead of the old alpha-concat fallback (which left routes
+// end-to-end instead of cross-route optimized).
+function getExactSeed(routeIds: readonly string[]): string[] | null {
+  // An imported route replaces a built-in one, so the baked seeds (built from the
+  // old houses) can't apply; a route imported on its own has its own solved order.
+  if (routeIds.some(isImportedRoute)) {
+    return routeIds.length === 1 ? importedSeed(routeIds[0]) : null;
   }
-  return combined.length ? combined : null;
+  const seed = SEED_ORDERS[routeSetKey(routeIds)];
+  return seed && seed.length ? seed : null;
+}
+
+// The reordering behind "Re-route from here". Delivered stops keep their place at
+// the top, undelivered stops are re-solved from `here`, stopped houses stay at the
+// bottom (hidden on screen, so Resume still works).
+export function planReroute(
+  orderedIds: readonly string[],
+  deliveredIds: readonly string[],
+  stoppedIds: readonly string[],
+  here: Coord,
+  coordOf: (id: string) => Coord | undefined,
+  matrixIdOf?: (id: string) => string | undefined,
+): { orderedIds: string[]; stops: number } {
+  const stopped = new Set(stoppedIds);
+  const delivered = new Set(deliveredIds);
+  const doneInOrder = orderedIds.filter((id) => delivered.has(id));
+  const remaining = orderedIds.filter((id) => !delivered.has(id) && !stopped.has(id));
+  const hidden = orderedIds.filter((id) => !delivered.has(id) && stopped.has(id));
+  if (remaining.length === 0) throw new Error("Nothing left to re-route.");
+  const solved = optimizeV2({ stopIds: remaining, startCoord: here, coordOf, matrixIdOf, timeBudgetMs: 3000 });
+  return { orderedIds: [...doneInOrder, ...solved.orderedIds, ...hidden], stops: remaining.length };
 }
 
 export function useShift() {
@@ -98,28 +142,63 @@ export function useShift() {
     });
   }, []);
 
-  const start = useCallback(async (routeIds: RouteId[], deliveryDayIdx?: number) => {
+  const start = useCallback(async (routeIds: RouteId[], deliveryDayIdx?: number, opts?: StartOptions) => {
     const dayIdx = deliveryDayIdx ?? todayDayIndex();
-    const stops = subscribersForRoutesOn(routeIds, dayIdx);
-    const eligibleIds = stops.map((s) => s.id);
+    const eligibleIds = subscribersForRoutesOn(routeIds, dayIdx).map((s) => s.id);
+    const excluded = new Set(opts?.excludeIds ?? []);
+    const solvable = eligibleIds.filter((id) => !excluded.has(id));
+    // Stopped houses stay in the order (hidden at render) so Resume works mid-shift.
+    const hiddenTail = eligibleIds.filter((id) => excluded.has(id));
 
-    // Priority: saved last shift's order → seed order → geographic optimizer
-    const saved = await loadLastOrder(routeIds);
-    const seed = getSeedOrder(routeIds);
+    const startCoord = opts?.startCoord;
+    const fromGps = startCoord !== undefined && !isAtLibrary(startCoord);
+    const coordOf = coordLookup();
+    const revTag = revisionTag(routeIds);
+
     let orderedIds: string[];
-    if (saved && saved.length) {
-      orderedIds = mergeOrder(saved, eligibleIds, seed);
-    } else if (seed && seed.length) {
-      orderedIds = mergeOrder(seed, eligibleIds, seed);
+    if (fromGps) {
+      // Away from the library: library-anchored seeds and saved orders don't fit,
+      // so solve from where Paulo is standing.
+      await nextFrame();
+      const r = optimizeV2({ stopIds: solvable, startCoord, coordOf, matrixIdOf: matrixLookup(), timeBudgetMs: 4000 });
+      orderedIds = [...r.orderedIds, ...hiddenTail];
     } else {
-      const { ordered } = optimize({ lat: LIBRARY.lat, lng: LIBRARY.lng }, stops);
-      orderedIds = ordered.map((x) => x.id);
+      // Priority: saved last shift's order → exact seed → on-device solver.
+      const saved = await loadLastOrder(routeIds, revTag);
+      const seed = getExactSeed(routeIds);
+      if (saved && saved.length) {
+        orderedIds = mergeOrder(saved, eligibleIds, seed);
+      } else if (seed) {
+        orderedIds = mergeOrder(seed, eligibleIds, seed);
+      } else {
+        const solvableSet = new Set(solvable);
+        const preKeep = anchorIdsFor(routeIds, allSubscribers()).filter((id) => solvableSet.has(id));
+        await nextFrame();
+        const r = optimizeV2({ stopIds: solvable, coordOf, matrixIdOf: matrixLookup(), preKeep, timeBudgetMs: 3000 });
+        orderedIds = [...r.orderedIds, ...hiddenTail];
+      }
     }
 
-    const s = newShift(todayKey(), routeIds, orderedIds, dayIdx);
+    const s = newShift(todayKey(), routeIds, orderedIds, dayIdx, fromGps ? "gps" : "library");
     await saveShift(s);
     setState(s);
     return s;
+  }, []);
+
+  // Re-order everything not yet delivered, starting from `here`. Delivered stops
+  // stay put at the top; stopped houses stay hidden at the bottom.
+  const rerouteFrom = useCallback(async (here: Coord, stoppedIds: readonly string[]) => {
+    const s = stateRef.current;
+    if (!s) throw new Error("No shift in progress.");
+    await nextFrame();
+    const plan = planReroute(s.orderedIds, s.deliveredIds, stoppedIds, here, coordLookup(), matrixLookup());
+    setState((prev) => {
+      if (!prev) return prev;
+      const next: ShiftState = { ...prev, orderedIds: plan.orderedIds, startMode: "gps" };
+      void saveShift(next);
+      return next;
+    });
+    return { stops: plan.stops };
   }, []);
 
   const reorder = useCallback(async (orderedIds: string[]) => {
@@ -176,7 +255,7 @@ export function useShift() {
   const finish = useCallback(async () => {
     const s = stateRef.current;
     if (!s) return;
-    await saveLastOrder(s.routeIds, s.orderedIds);
+    if (s.startMode !== "gps") await saveLastOrder(s.routeIds, s.orderedIds, revisionTag(s.routeIds));
     await clearShift(todayKey());
     setState(null);
   }, []);
@@ -186,7 +265,7 @@ export function useShift() {
   const finishAsDone = useCallback(async () => {
     const s = stateRef.current;
     if (!s) return;
-    await saveLastOrder(s.routeIds, s.orderedIds);
+    if (s.startMode !== "gps") await saveLastOrder(s.routeIds, s.orderedIds, revisionTag(s.routeIds));
     await clearShift(todayKey());
     setState(null);
   }, []);
@@ -196,5 +275,5 @@ export function useShift() {
     setState(null);
   }, []);
 
-  return { state, ready, start, reorder, markDelivered, unmarkDelivered, markSkipped, finish, finishAsDone, reset };
+  return { state, ready, start, rerouteFrom, reorder, markDelivered, unmarkDelivered, markSkipped, finish, finishAsDone, reset };
 }

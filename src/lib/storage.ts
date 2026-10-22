@@ -2,10 +2,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { RouteId, ShiftState } from "@/types";
 
 const KEY_PREFIX = "@rr/shift/";
-// v10: bumped 2026-10-14 for H21 reroute from 250 Pinewood Pl (bundles with the
-// G11 add + J13 pivot in the same build). Any previously-installed v9 saved
-// orders would stomp the new H21 seed.
-const LAST_ORDER_PREFIX = "@rr/lastOrder/v10/";
+// v13: bumped 2026-10-19 to pick up the H21+G7+G11 subset seed (cross-route
+// optimized, 209 stops · 33.77 km · 89.8 min, vs ~42 km alpha-concat fallback).
+const LAST_ORDER_PREFIX = "@rr/lastOrder/v13/";
 
 export function todayKey(): string {
   const d = new Date();
@@ -30,6 +29,7 @@ export function newShift(
   routeIds: RouteId[],
   orderedIds: string[],
   deliveryDayIdx: number,
+  startMode: "library" | "gps" = "library",
 ): ShiftState {
   return {
     date,
@@ -40,6 +40,7 @@ export function newShift(
     skippedIds: [],
     orderedIds,
     deliveryDayIdx,
+    startMode,
   };
 }
 
@@ -47,11 +48,17 @@ export function routeSetKey(routeIds: readonly string[]): string {
   return [...routeIds].sort().join("+");
 }
 
-export async function loadLastOrder(routeIds: readonly string[]): Promise<string[] | null> {
-  const raw = await AsyncStorage.getItem(LAST_ORDER_PREFIX + routeSetKey(routeIds));
+// `revTag` names the revision of each imported route in the set ("" when every
+// route is built in, which keeps existing saved orders valid). Re-importing a
+// route changes its houses, so orders saved for the old revision stop matching.
+const orderKey = (routeIds: readonly string[], revTag: string) =>
+  LAST_ORDER_PREFIX + routeSetKey(routeIds) + (revTag ? `#${revTag}` : "");
+
+export async function loadLastOrder(routeIds: readonly string[], revTag = ""): Promise<string[] | null> {
+  const raw = await AsyncStorage.getItem(orderKey(routeIds, revTag));
   return raw ? JSON.parse(raw) : null;
 }
 
-export async function saveLastOrder(routeIds: readonly string[], orderedIds: string[]): Promise<void> {
-  await AsyncStorage.setItem(LAST_ORDER_PREFIX + routeSetKey(routeIds), JSON.stringify(orderedIds));
+export async function saveLastOrder(routeIds: readonly string[], orderedIds: string[], revTag = ""): Promise<void> {
+  await AsyncStorage.setItem(orderKey(routeIds, revTag), JSON.stringify(orderedIds));
 }

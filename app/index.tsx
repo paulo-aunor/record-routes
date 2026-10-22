@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { ROUTES, LIBRARY } from "@/data/routes";
-import { countByRoute, countByRouteOn } from "@/data/subscribers";
+import { LIBRARY } from "@/data/routes";
+import { getCurrentCoord } from "@/lib/location";
+import { usePaused } from "@/lib/paused";
+import { countByRoute, countByRouteOn, managedRoutes, registry, useRegistry, visibleRoutes } from "@/lib/registry";
 import { DAY_NAMES, todayDayIndex } from "@/lib/schedule";
 import { useShift } from "@/lib/shift";
 import type { RouteId } from "@/types";
@@ -10,12 +12,21 @@ import type { RouteId } from "@/types";
 export default function Home() {
   const router = useRouter();
   const { state, ready, start, reset } = useShift();
+  const { paused } = usePaused();
+  const pausedCount = Object.keys(paused).length;
+  const reg = useRegistry();
+  const routes = visibleRoutes();
+  const managedCount = managedRoutes().length;
   const [selected, setSelected] = useState<Set<RouteId>>(new Set());
+  const [startFrom, setStartFrom] = useState<"library" | "gps">("library");
+  const [busy, setBusy] = useState(false);
   const realToday = useMemo(() => todayDayIndex(), []);
   const [dayIdx, setDayIdx] = useState<number>(realToday);
   const dayName = DAY_NAMES[dayIdx];
-  const counts = useMemo(() => countByRoute(), []);
-  const dayCounts = useMemo(() => countByRouteOn(dayIdx), [dayIdx]);
+  const counts = useMemo(() => countByRoute(), [reg.state]);
+  const dayCounts = useMemo(() => countByRouteOn(dayIdx), [dayIdx, reg.state]);
+  // A route hidden after being ticked must not stay selected.
+  const chosen = routes.filter((r) => selected.has(r.id)).map((r) => r.id);
 
   const toggle = (id: RouteId) => {
     setSelected((prev) => {
@@ -26,20 +37,49 @@ export default function Home() {
     });
   };
 
-  const selectAll = () => setSelected(new Set(ROUTES.map((r) => r.id)));
+  const selectAll = () => setSelected(new Set(routes.map((r) => r.id)));
 
-  const canStart = selected.size > 0 && !state;
+  const canStart = chosen.length > 0 && !state && !busy;
 
   const onStart = async () => {
-    await start(Array.from(selected), dayIdx);
-    router.push("/shift");
+    setBusy(true);
+    try {
+      if (startFrom === "gps") {
+        const startCoord = await getCurrentCoord();
+        await start(chosen, dayIdx, { startCoord, excludeIds: Object.keys(paused) });
+      } else {
+        await start(chosen, dayIdx, { excludeIds: Object.keys(paused) });
+      }
+      router.push("/shift");
+    } catch (e) {
+      Alert.alert("Couldn't start the shift", e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
   };
 
   const onResume = () => router.push("/shift");
 
-  const totalSelected = Array.from(selected).reduce((n, id) => n + (dayCounts[id] ?? 0), 0);
+  const totalSelected = chosen.reduce((n, id) => n + (dayCounts[id] ?? 0), 0);
 
-  if (!ready) {
+  const confirmHide = (id: string) => {
+    Alert.alert(
+      `Hide ${id}?`,
+      "It leaves the route list and Select all until you activate it again from Manage routes. Nothing is deleted.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Hide",
+          onPress: () => {
+            registry.hide(id).catch((e: unknown) =>
+              Alert.alert("Couldn't hide the route", e instanceof Error ? e.message : String(e)));
+          },
+        },
+      ],
+    );
+  };
+
+  if (!ready || !reg.ready) {
     return (
       <View style={styles.center}>
         <Text style={styles.dim}>Loading…</Text>
@@ -49,6 +89,12 @@ export default function Home() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {reg.error && (
+        <View style={styles.errorBox}>
+          <Text style={styles.errorText}>{reg.error}</Text>
+        </View>
+      )}
+
       {state && !state.finishedAt && (
         <Pressable style={[styles.card, styles.resumeCard]} onPress={onResume}>
           <Text style={styles.resumeTitle}>Shift in progress</Text>
@@ -83,7 +129,7 @@ export default function Home() {
 
       <Text style={styles.section}>Pick routes · {dayName}</Text>
 
-      {ROUTES.map((r) => {
+      {routes.map((r) => {
         const isOn = selected.has(r.id);
         const today = dayCounts[r.id] ?? 0;
         const total = counts[r.id] ?? 0;
@@ -100,6 +146,9 @@ export default function Home() {
               <View>
                 <Text style={styles.routeCode}>{r.id}</Text>
                 <Text style={styles.routeMeta}>{metaText}</Text>
+                <Pressable onPress={() => confirmHide(r.id)} hitSlop={10}>
+                  <Text style={styles.hideLink}>Hide route</Text>
+                </Pressable>
               </View>
               <View style={[styles.checkbox, isOn && styles.checkboxOn]}>
                 {isOn && <Text style={styles.checkmark}>✓</Text>}
@@ -110,14 +159,50 @@ export default function Home() {
       })}
 
       <Pressable style={styles.linkBtn} onPress={selectAll}>
-        <Text style={styles.linkText}>Select all 3</Text>
+        <Text style={styles.linkText}>Select all {routes.length}</Text>
       </Pressable>
+
+      <Pressable style={styles.addRouteBtn} onPress={() => router.push("/import" as never)}>
+        <Text style={styles.addRouteText}>Add route from PDF</Text>
+      </Pressable>
+
+      <Pressable style={styles.pausedBanner} onPress={() => router.push("/routes" as never)}>
+        <Text style={styles.pausedBannerText}>
+          {managedCount === 0
+            ? "No routes hidden · manage routes"
+            : `${managedCount} route${managedCount === 1 ? "" : "s"} hidden or removed · manage routes`}
+        </Text>
+      </Pressable>
+
+      <Pressable style={styles.pausedBanner} onPress={() => router.push("/paused" as never)}>
+        <Text style={styles.pausedBannerText}>
+          {pausedCount === 0
+            ? "No houses stopped · tap to manage"
+            : `${pausedCount} house${pausedCount === 1 ? "" : "s"} stopped · tap to manage`}
+        </Text>
+      </Pressable>
+
+      <Text style={styles.section}>Start from</Text>
+      <View style={styles.dayRow}>
+        {([["library", "Library"], ["gps", "My location"]] as const).map(([key, label]) => {
+          const isSelected = startFrom === key;
+          return (
+            <Pressable
+              key={key}
+              style={[styles.dayPill, isSelected && styles.dayPillActive]}
+              onPress={() => setStartFrom(key)}
+            >
+              <Text style={[styles.dayPillText, isSelected && styles.dayPillTextActive]}>{label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
 
       <View style={styles.summary}>
         <Text style={styles.summaryText}>
-          {selected.size === 0
+          {chosen.length === 0
             ? "No routes selected"
-            : `${totalSelected} stops · start from ${LIBRARY.name}`}
+            : `${totalSelected} stops · start from ${startFrom === "gps" ? "your current location" : LIBRARY.name}`}
         </Text>
       </View>
 
@@ -127,7 +212,7 @@ export default function Home() {
         disabled={!canStart}
       >
         <Text style={styles.primaryText}>
-          {state ? "Reset first" : "Start shift"}
+          {state ? "Reset first" : busy ? (startFrom === "gps" ? "Finding you…" : "Planning…") : "Start shift"}
         </Text>
       </Pressable>
 
@@ -182,6 +267,20 @@ const styles = StyleSheet.create({
     width: 4, height: 4, borderRadius: 2, backgroundColor: "#4ade80", marginTop: 4,
   },
   dayPillDotOnActive: { backgroundColor: "#0a0a0a" },
+  pausedBanner: {
+    backgroundColor: "#1a1a1a", borderRadius: 10, padding: 12,
+    borderWidth: 1, borderColor: "#2a2a2a", alignItems: "center",
+  },
+  pausedBannerText: { color: "#aaa", fontSize: 13 },
+  addRouteBtn: {
+    backgroundColor: "#1a1a1a", borderRadius: 10, padding: 14, alignItems: "center",
+    borderWidth: 1, borderColor: "#60a5fa",
+  },
+  addRouteText: { color: "#60a5fa", fontSize: 15, fontWeight: "700" },
+  hideLink: { color: "#666", fontSize: 12, marginTop: 8 },
+  errorBox: { backgroundColor: "#2a0f0f", borderRadius: 10, padding: 12, borderWidth: 1, borderColor: "#f87171" },
+  errorText: { color: "#fca5a5", fontSize: 13 },
+
   summary: { paddingVertical: 8 },
   summaryText: { color: "#aaa", textAlign: "center" },
   primary: {

@@ -1,0 +1,35 @@
+import { useCallback, useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// Persisted set of subscriber IDs that are "stopped" — Paulo paused their
+// delivery (vacation, moved out, requested a hold). Stays off until he toggles
+// them back on. Independent of per-shift orderedIds and saved orders.
+const PAUSED_KEY = "@rr/pausedSubs/v1";
+
+export type PausedMap = Record<string, true>;
+
+export function usePaused() {
+  const [paused, setPaused] = useState<PausedMap>({});
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem(PAUSED_KEY).then((raw) => {
+      setPaused(raw ? (JSON.parse(raw) as PausedMap) : {});
+      setReady(true);
+    });
+  }, []);
+
+  const togglePaused = useCallback(async (id: string) => {
+    setPaused((prev) => {
+      const next = { ...prev };
+      if (next[id]) delete next[id];
+      else next[id] = true;
+      void AsyncStorage.setItem(PAUSED_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const isPaused = useCallback((id: string) => !!paused[id], [paused]);
+
+  return { paused, ready, togglePaused, isPaused };
+}

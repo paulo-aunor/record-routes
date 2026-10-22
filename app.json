@@ -15,7 +15,13 @@
     },
     "plugins": [
       "expo-router",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Record Routes uses your location to start a shift from where you are and to re-route the stops you have left."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

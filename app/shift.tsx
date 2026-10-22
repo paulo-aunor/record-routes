@@ -4,10 +4,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useKeepAwake } from "expo-keep-awake";
 import { useRouter } from "expo-router";
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from "react-native-draggable-flatlist";
-import { subscribersForRoutes } from "@/data/subscribers";
 import { DEPOT_NOTES } from "@/data/depot-notes";
 import { openInGoogleMaps } from "@/lib/navigation";
+import { getCurrentCoord } from "@/lib/location";
 import { noteKey, useNotes } from "@/lib/notes";
+import { usePaused } from "@/lib/paused";
+import { subscribersForRoutes, useRegistry } from "@/lib/registry";
 import { DAY_NAMES, todayDayIndex } from "@/lib/schedule";
 import { useShift } from "@/lib/shift";
 import type { Subscriber } from "@/types";
@@ -23,8 +25,11 @@ export default function Shift() {
   useKeepAwake();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { state, ready, reorder, markDelivered, unmarkDelivered, finish, finishAsDone, reset } = useShift();
+  const { state, ready, reorder, rerouteFrom, markDelivered, unmarkDelivered, finish, finishAsDone, reset } = useShift();
   const { notes, setNote } = useNotes();
+  const { paused, togglePaused } = usePaused();
+  const reg = useRegistry();
+  const [rerouting, setRerouting] = useState(false);
   const [now, setNow] = useState(Date.now());
   const [editing, setEditing] = useState<Subscriber | null>(null);
   const [draft, setDraft] = useState("");
@@ -40,13 +45,14 @@ export default function Shift() {
     const byId = new Map(bag.map((s) => [s.id, s]));
     const ordered: Subscriber[] = [];
     for (const id of state.orderedIds) {
+      if (paused[id]) continue;   // house is Stopped — skip entirely
       const s = byId.get(id);
       if (s) ordered.push(s);
     }
     return ordered;
-  }, [state]);
+  }, [state, paused, reg.state]);
 
-  if (!ready) return <View style={styles.center}><Text style={styles.dim}>Loading…</Text></View>;
+  if (!ready || !reg.ready) return <View style={styles.center}><Text style={styles.dim}>Loading…</Text></View>;
 
   if (!state) {
     return (
@@ -96,6 +102,31 @@ export default function Shift() {
     );
   };
 
+  const onReroute = () => {
+    Alert.alert(
+      "Re-route from here?",
+      `Re-orders the ${remaining.length} stop${remaining.length === 1 ? "" : "s"} you haven't delivered, starting from where you are now. Any manual order for them is replaced.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Re-route",
+          onPress: async () => {
+            setRerouting(true);
+            try {
+              const here = await getCurrentCoord();
+              const r = await rerouteFrom(here, Object.keys(paused));
+              Alert.alert("Re-routed", `${r.stops} stop${r.stops === 1 ? "" : "s"} re-ordered from where you are.`);
+            } catch (e) {
+              Alert.alert("Couldn't re-route", e instanceof Error ? e.message : String(e));
+            } finally {
+              setRerouting(false);
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const onReset = () => {
     Alert.alert("Reset shift?", "Clears all delivery marks for today.", [
       { text: "Cancel", style: "cancel" },
@@ -111,7 +142,7 @@ export default function Shift() {
     const isDone = delivered.includes(item.id);
     const isNext = nextStop?.id === item.id;
     const userNote = notes[noteKey(item)];
-    const depotNote = DEPOT_NOTES[item.id];
+    const depotNote = DEPOT_NOTES[item.id] ?? item.note;
     return (
       <ScaleDecorator>
         <View style={[styles.row, isNext && styles.rowNext, isDone && styles.rowDone, isActive && styles.rowActive]}>
@@ -168,7 +199,7 @@ export default function Shift() {
           <Text style={styles.nextLabel}>NEXT</Text>
           <Text style={styles.nextAddress}>{nextStop.address}</Text>
           <Text style={styles.nextName}>{nextStop.name}</Text>
-          {DEPOT_NOTES[nextStop.id] ? <Text style={styles.nextDepotNote}>📮 {DEPOT_NOTES[nextStop.id]}</Text> : null}
+          {(DEPOT_NOTES[nextStop.id] ?? nextStop.note) ? <Text style={styles.nextDepotNote}>📮 {DEPOT_NOTES[nextStop.id] ?? nextStop.note}</Text> : null}
           {notes[noteKey(nextStop)] ? <Text style={styles.nextNote}>✎ {notes[noteKey(nextStop)]}</Text> : null}
           <Text style={styles.nextNav}>Tap to navigate ›</Text>
         </Pressable>
@@ -195,6 +226,13 @@ export default function Shift() {
       />
 
       <View style={[styles.footer, { paddingBottom: 12 + insets.bottom }]}>
+        <Pressable
+          style={[styles.rerouteBtn, (rerouting || allDone) && styles.rerouteBtnOff]}
+          onPress={onReroute}
+          disabled={rerouting || allDone}
+        >
+          <Text style={styles.rerouteText}>{rerouting ? "Finding you…" : "Re-route from here"}</Text>
+        </Pressable>
         <Text style={styles.footerHint}>Tap ✎ to add note · long-press ≡ to reorder</Text>
         <Pressable style={styles.footerBtn} onPress={onReset}>
           <Text style={styles.footerText}>Reset today's shift</Text>
@@ -207,6 +245,27 @@ export default function Shift() {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>{editing?.address}</Text>
             <Text style={styles.modalSub}>{editing?.name} · {editing?.postal}</Text>
+            {editing && (
+              <Pressable
+                style={[styles.pauseRow, paused[editing.id] && styles.pauseRowOn]}
+                onPress={() => {
+                  togglePaused(editing.id);
+                  if (!paused[editing.id]) closeNote();
+                }}
+              >
+                <View style={[styles.pauseDot, paused[editing.id] && styles.pauseDotOn]} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.pauseLabel}>
+                    {paused[editing.id] ? "Stopped — paper not delivered" : "Stop this house"}
+                  </Text>
+                  <Text style={styles.pauseSub}>
+                    {paused[editing.id]
+                      ? "Tap to resume deliveries"
+                      : "Hide from future shifts until resumed"}
+                  </Text>
+                </View>
+              </Pressable>
+            )}
             <TextInput
               style={styles.modalInput}
               multiline
@@ -214,7 +273,6 @@ export default function Shift() {
               placeholderTextColor="#555"
               value={draft}
               onChangeText={setDraft}
-              autoFocus
             />
             <View style={styles.modalActions}>
               <Pressable style={styles.modalCancel} onPress={closeNote}>
@@ -292,6 +350,12 @@ const styles = StyleSheet.create({
   primaryText: { color: "#0a0a0a", fontSize: 16, fontWeight: "700" },
 
   footer: { paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: 1, borderColor: "#1a1a1a" },
+  rerouteBtn: {
+    paddingVertical: 12, borderRadius: 10, alignItems: "center", marginBottom: 8,
+    backgroundColor: "#1a1a1a", borderWidth: 1, borderColor: "#60a5fa",
+  },
+  rerouteBtnOff: { opacity: 0.4 },
+  rerouteText: { color: "#60a5fa", fontSize: 14, fontWeight: "700" },
   footerHint: { color: "#555", fontSize: 11, textAlign: "center" },
   footerBtn: { padding: 8, alignItems: "center" },
   footerText: { color: "#666", fontSize: 12 },
@@ -309,6 +373,17 @@ const styles = StyleSheet.create({
     minHeight: 120, fontSize: 16, textAlignVertical: "top",
     borderWidth: 1, borderColor: "#333",
   },
+  pauseRow: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    padding: 12, borderRadius: 10, backgroundColor: "#1a1a1a",
+    borderWidth: 1, borderColor: "#2a2a2a",
+  },
+  pauseRowOn: { backgroundColor: "#2a1a0a", borderColor: "#facc15" },
+  pauseDot: { width: 16, height: 16, borderRadius: 8, backgroundColor: "#333", borderWidth: 2, borderColor: "#555" },
+  pauseDotOn: { backgroundColor: "#facc15", borderColor: "#facc15" },
+  pauseLabel: { color: "#f5f5f5", fontSize: 14, fontWeight: "600" },
+  pauseSub: { color: "#888", fontSize: 12, marginTop: 2 },
+
   modalActions: { flexDirection: "row", gap: 12, marginTop: 4 },
   modalCancel: { flex: 1, padding: 14, borderRadius: 10, backgroundColor: "#1f1f1f", alignItems: "center" },
   modalCancelText: { color: "#aaa", fontWeight: "600" },

@@ -1,4 +1,5 @@
-export type RouteId = "H21" | "J3" | "J13" | "G7" | "G11";
+// Built-in routes use their short code (H21, J3, ...); imported routes derive theirs from the PDF.
+export type RouteId = string;
 
 export interface Route {
   id: RouteId;
@@ -17,6 +18,7 @@ export interface Subscriber {
   lat: number;
   lng: number;
   schedule?: string;
+  note?: string;        // delivery note carried from an imported PDF ("Attn: ...")
 }
 
 export interface ShiftState {
@@ -28,4 +30,8 @@ export interface ShiftState {
   skippedIds: string[];
   orderedIds: string[];
   deliveryDayIdx?: number;
+  // "gps" once the shift started from a live location or was re-routed from one.
+  // Those orders are anchored to wherever Paulo was standing, so Shift done does
+  // not save them over the library-anchored order for next time.
+  startMode?: "library" | "gps";
 }

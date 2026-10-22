@@ -18,6 +18,9 @@ export default function RootLayout() {
         >
           <Stack.Screen name="index" options={{ title: "Record Routes" }} />
           <Stack.Screen name="shift" options={{ title: "Tonight's shift" }} />
+          <Stack.Screen name="import" options={{ title: "Add route from PDF" }} />
+          <Stack.Screen name="routes" options={{ title: "Manage routes" }} />
+          <Stack.Screen name="paused" options={{ title: "Stopped houses" }} />
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>
