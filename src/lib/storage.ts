@@ -4,7 +4,9 @@ import type { RouteId, ShiftState } from "@/types";
 const KEY_PREFIX = "@rr/shift/";
 // v13: bumped 2026-10-19 to pick up the H21+G7+G11 subset seed (cross-route
 // optimized, 209 stops · 33.77 km · 89.8 min, vs ~42 km alpha-concat fallback).
-const LAST_ORDER_PREFIX = "@rr/lastOrder/v13/";
+// v14: bumped 2026-10-23 so the direction-aware seeds (scripts/bake-heading-seeds.mjs)
+// replace orders saved from the old seeds, which sent the car round blocks to reverse.
+const LAST_ORDER_PREFIX = "@rr/lastOrder/v14/";
 
 export function todayKey(): string {
   const d = new Date();

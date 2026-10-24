@@ -12,3 +12,6 @@ web-build/
 *.mobileprovision
 *.tsbuildinfo
 expo-env.d.ts
+
+# bake-heading-seeds.mjs download cache (rebuilt with `fetch`)
+scripts/.cache/
