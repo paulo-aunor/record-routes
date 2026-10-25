@@ -3,6 +3,7 @@ import type { RouteId, ShiftState } from "@/types";
 import { anchorIdsFor } from "@/data/anchors";
 import { SEED_ORDERS } from "@/data/seed-orders";
 import { isAtLibrary } from "./location";
+import { orderStops } from "./headingData";
 import { matrixIdFor } from "./matrixAlias";
 import { mergeOrder } from "./mergeOrder";
 import { optimize as optimizeV2, type Coord } from "./optimizer-v2";
@@ -78,8 +79,32 @@ export function planReroute(
   const remaining = orderedIds.filter((id) => !delivered.has(id) && !stopped.has(id));
   const hidden = orderedIds.filter((id) => !delivered.has(id) && stopped.has(id));
   if (remaining.length === 0) throw new Error("Nothing left to re-route.");
-  const solved = optimizeV2({ stopIds: remaining, startCoord: here, coordOf, matrixIdOf, timeBudgetMs: 3000 });
+  // Two starting points for the direction-aware search: the order as it stands, and a quick straight-distance order from here.
+  const quick = optimizeV2({ stopIds: remaining, startCoord: here, coordOf, matrixIdOf, timeBudgetMs: 1000 });
+  const solved = orderStops({
+    stopIds: remaining,
+    coordOf,
+    matrixIdOf,
+    start: { kind: "gps", coord: here },
+    candidates: [remaining, quick.orderedIds],
+    ms: 3000,
+  });
   return { orderedIds: [...doneInOrder, ...solved.orderedIds, ...hidden], stops: remaining.length };
+}
+
+// The order for a shift that starts away from the library. The usual library order (when there is one) and a quick
+// straight-distance order from here are both improved with the direction-aware search; the shorter one wins.
+export function planFromGps(
+  solvable: readonly string[],
+  libraryOrder: readonly string[] | null,
+  here: Coord,
+  coordOf: (id: string) => Coord | undefined,
+  matrixIdOf?: (id: string) => string | undefined,
+): string[] {
+  const solvableSet = new Set(solvable);
+  const quick = optimizeV2({ stopIds: solvable, startCoord: here, coordOf, matrixIdOf, timeBudgetMs: 1500 });
+  const candidates = libraryOrder ? [libraryOrder.filter((id) => solvableSet.has(id)), quick.orderedIds] : [quick.orderedIds];
+  return orderStops({ stopIds: solvable, coordOf, matrixIdOf, start: { kind: "gps", coord: here }, candidates, ms: 4000 }).orderedIds;
 }
 
 export function useShift() {
@@ -116,9 +141,11 @@ export function useShift() {
     if (fromGps) {
       // Away from the library: library-anchored seeds and saved orders don't fit,
       // so solve from where Paulo is standing.
+      const saved = await loadLastOrder(routeIds, revTag);
+      const seed = getExactSeed(routeIds);
+      const base = saved && saved.length ? mergeOrder(saved, eligibleIds, seed) : seed ? mergeOrder(seed, eligibleIds, seed) : null;
       await nextFrame();
-      const r = optimizeV2({ stopIds: solvable, startCoord, coordOf, matrixIdOf: matrixLookup(), timeBudgetMs: 4000 });
-      orderedIds = [...r.orderedIds, ...hiddenTail];
+      orderedIds = [...planFromGps(solvable, base, startCoord, coordOf, matrixLookup()), ...hiddenTail];
     } else {
       // Priority: saved last shift's order → exact seed → on-device solver.
       const saved = await loadLastOrder(routeIds, revTag);
@@ -131,7 +158,16 @@ export function useShift() {
         const solvableSet = new Set(solvable);
         const preKeep = anchorIdsFor(routeIds, allSubscribers()).filter((id) => solvableSet.has(id));
         await nextFrame();
-        const r = optimizeV2({ stopIds: solvable, coordOf, matrixIdOf: matrixLookup(), preKeep, timeBudgetMs: 3000 });
+        const quick = optimizeV2({ stopIds: solvable, coordOf, matrixIdOf: matrixLookup(), preKeep, timeBudgetMs: 1000 });
+        const r = orderStops({
+          stopIds: solvable,
+          coordOf,
+          matrixIdOf: matrixLookup(),
+          start: { kind: "library" },
+          fixedIds: preKeep,
+          candidates: [quick.orderedIds],
+          ms: 3000,
+        });
         orderedIds = [...r.orderedIds, ...hiddenTail];
       }
     }

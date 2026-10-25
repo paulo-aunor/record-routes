@@ -18,6 +18,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import ts from "typescript";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..");
@@ -26,11 +27,17 @@ const OUT_DIR = path.join(HERE, "heading-seeds");
 const OSRM = "https://router.project-osrm.org";
 const RANGE = 35;          // degrees either side of a stop's road direction
 const SNAP_SLACK_M = 20;   // a direction whose road is this much farther than the nearest road doesn't exist here (one-way)
-const NEAR_TIE_M = 30;     // arrival directions this close in cost may go either way; the plan assumes the worse
 const BLOCK = 50;
 
 fs.mkdirSync(CACHE, { recursive: true });
 fs.mkdirSync(OUT_DIR, { recursive: true });
+
+// ---------------------------------------------------------------- the model and search (shared with the app)
+
+// src/lib/headingSearch.ts has no imports, so it is compiled on the fly and the app and this tool run the same code.
+const searchSource = fs.readFileSync(path.join(ROOT, "src/lib/headingSearch.ts"), "utf8");
+const searchJs = ts.transpileModule(searchSource, { compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 } }).outputText;
+const { search, legsGreedy } = await import("data:text/javascript;base64," + Buffer.from(searchJs).toString("base64"));
 
 // ---------------------------------------------------------------- data
 
@@ -104,7 +111,15 @@ async function osrm(pathAndQuery) {
 function jsonCache(name) {
   const file = path.join(CACHE, name);
   const data = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : {};
-  return { data, save: () => fs.writeFileSync(file, JSON.stringify(data)) };
+  // several solves can share one cache file, so write a temp file and rename it into place
+  return {
+    data,
+    save: () => {
+      const tmp = `${file}.${process.pid}.tmp`;
+      fs.writeFileSync(tmp, JSON.stringify(data));
+      fs.renameSync(tmp, file);
+    },
+  };
 }
 
 const pt = (k) => (k === -1 ? LIB : SUBS[k]);
@@ -224,179 +239,6 @@ function loadMatrices() {
   return { C, Lib };
 }
 
-// ---------------------------------------------------------------- scoring
-
-// Cost of an order (global house indexes) when near-ties go the worst way. `pen` adds a per-pair correction.
-function makeCost({ C, Lib }, pen) {
-  const [c00, c01, c10, c11] = C;
-  return function cost(o) {
-    const m = o.length;
-    if (m === 0) return 0;
-    const l0 = Lib[0][o[0]], l1 = Lib[1][o[0]];
-    const lm = l0 < l1 ? l0 : l1;
-    let w0 = l0 <= lm + NEAR_TIE_M ? l0 : -Infinity;
-    let w1 = l1 <= lm + NEAR_TIE_M ? l1 : -Infinity;
-    for (let i = 1; i < m; i++) {
-      const ix = o[i - 1] * N + o[i];
-      const extra = pen ? pen[ix] : 0;
-      let n0 = -Infinity, n1 = -Infinity;
-      if (w0 !== -Infinity) {
-        const a = c00[ix], b = c01[ix], mn = a < b ? a : b;
-        if (a <= mn + NEAR_TIE_M && w0 + a > n0) n0 = w0 + a;
-        if (b <= mn + NEAR_TIE_M && w0 + b > n1) n1 = w0 + b;
-      }
-      if (w1 !== -Infinity) {
-        const a = c10[ix], b = c11[ix], mn = a < b ? a : b;
-        if (a <= mn + NEAR_TIE_M && w1 + a > n0) n0 = w1 + a;
-        if (b <= mn + NEAR_TIE_M && w1 + b > n1) n1 = w1 + b;
-      }
-      w0 = n0 + extra; w1 = n1 + extra;
-    }
-    const r = w0 > w1 ? w0 : w1;
-    return r === -Infinity ? Infinity : r;
-  };
-}
-
-// Leg lengths along an order when every leg takes the shortest way from the current direction.
-function legsGreedy({ C, Lib }, o) {
-  let s = Lib[0][o[0]] <= Lib[1][o[0]] ? 0 : 1;
-  const out = [Lib[s][o[0]]];
-  for (let i = 1; i < o.length; i++) {
-    const ix = o[i - 1] * N + o[i];
-    const a = C[s * 2][ix], b = C[s * 2 + 1][ix];
-    const t = a <= b ? 0 : 1;
-    out.push(t === 0 ? a : b);
-    s = t;
-  }
-  return out;
-}
-
-// ---------------------------------------------------------------- search
-
-function mulberry32(a) {
-  return () => {
-    a |= 0; a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-// Nearest houses by the best-case distance in either direction.
-function neighbourLists(mats, stops, K) {
-  const best = (a, b) => Math.min(mats.C[0][a * N + b], mats.C[1][a * N + b], mats.C[2][a * N + b], mats.C[3][a * N + b]);
-  const lists = new Map();
-  for (const a of stops) {
-    const d = stops.filter((b) => b !== a).map((b) => [Math.min(best(a, b), best(b, a)), b]).sort((x, y) => x[0] - y[0]);
-    lists.set(a, d.slice(0, K).map((x) => x[1]));
-  }
-  return lists;
-}
-
-// Don't-look-bit local search: 2-opt and or-opt (1-3 houses, either way round) restricted to near neighbours.
-function improve(cost, order, fixed, near, active, deadline) {
-  let cur = order.slice();
-  let best = cost(cur);
-  const queue = [...active];
-  const queued = new Set(queue);
-  const pos = new Map();
-  const reindex = () => cur.forEach((k, i) => pos.set(k, i));
-  reindex();
-  const push = (k) => { if (!queued.has(k)) { queued.add(k); queue.push(k); } };
-
-  const accept = (cand, c, touched) => {
-    cur = cand; best = c; reindex();
-    for (const k of touched) { push(k); for (const nb of near.get(k) ?? []) push(nb); }
-  };
-
-  while (queue.length > 0 && Date.now() < deadline) {
-    const x = queue.shift();
-    queued.delete(x);
-    const i = pos.get(x);
-    if (i === undefined || i < fixed) continue;
-    let moved = false;
-
-    // 2-opt: make x adjacent to one of its neighbours by reversing the stretch between them
-    for (const v of near.get(x)) {
-      const j = pos.get(v);
-      if (j === undefined || moved) continue;
-      let a, b;
-      if (j > i) { a = i + 1; b = j; } else { a = j + 1; b = i; }
-      if (a < fixed || a >= b) continue;
-      const cand = cur.slice(0, a).concat(cur.slice(a, b + 1).reverse(), cur.slice(b + 1));
-      const c = cost(cand);
-      if (c < best - 1e-6) { accept(cand, c, [cur[a - 1], cur[a], cur[b], cur[b + 1] ?? cur[b]]); moved = true; }
-    }
-    if (moved) { push(x); continue; }
-
-    // or-opt: move a stretch of 1-3 houses containing x next to a neighbour of either end
-    for (let len = 1; len <= 3 && !moved; len++) {
-      for (let st = i - len + 1; st <= i && !moved; st++) {
-        if (st < fixed || st + len > cur.length) continue;
-        const seg = cur.slice(st, st + len);
-        const rest = cur.slice(0, st).concat(cur.slice(st + len));
-        const ends = len === 1 ? [seg[0]] : [seg[0], seg[len - 1]];
-        for (const e of ends) {
-          for (const v of near.get(e)) {
-            if (moved) break;
-            const pv = rest.indexOf(v);
-            if (pv < 0) continue;
-            for (const ins of [pv, pv + 1]) {
-              if (ins < fixed || moved) continue;
-              for (const flip of len === 1 ? [false] : [false, true]) {
-                const piece = flip ? seg.slice().reverse() : seg;
-                const cand = rest.slice(0, ins).concat(piece, rest.slice(ins));
-                const c = cost(cand);
-                if (c < best - 1e-6) { accept(cand, c, [...seg, v, rest[ins - 1] ?? v]); moved = true; break; }
-              }
-              if (moved) break;
-            }
-          }
-        }
-      }
-    }
-    if (moved) push(x);
-  }
-  return { order: cur, cost: best };
-}
-
-function iterate(mats, cost, start, fixed, stops, seconds, seed) {
-  const deadline = Date.now() + seconds * 1000;
-  const near = neighbourLists(mats, stops, 12);
-  const rnd = mulberry32(seed);
-  let cur = improve(cost, start, fixed, near, stops, deadline);
-  let best = cur;
-  let kicks = 0;
-  const free = cur.order.length - fixed;
-  while (Date.now() < deadline && free >= 8) {
-    kicks++;
-    const o = cur.order.slice();
-    const w = Math.min(free, 12 + Math.floor(rnd() * 30));
-    const a0 = fixed + Math.floor(rnd() * (free - w + 1));
-    const touched = new Set();
-    let kicked;
-    if (rnd() < 0.5) {
-      // swap two neighbouring stretches inside a window
-      const c1 = a0 + 1 + Math.floor(rnd() * (w - 2)), c2 = c1 + 1 + Math.floor(rnd() * (a0 + w - c1 - 1 || 1));
-      const cand = o.slice(0, a0).concat(o.slice(c1, c2), o.slice(a0, c1), o.slice(c2));
-      cand.slice(a0, a0 + w).forEach((k) => touched.add(k));
-      kicked = cand;
-    } else {
-      // relocate a short stretch somewhere nearby
-      const len = 1 + Math.floor(rnd() * 4);
-      const from = a0 + Math.floor(rnd() * Math.max(1, w - len));
-      const seg = o.splice(from, len);
-      const to = Math.max(fixed, Math.min(o.length, a0 + Math.floor(rnd() * w)));
-      o.splice(to, 0, ...seg);
-      o.slice(Math.min(from, to), Math.min(o.length, Math.max(from, to) + len)).forEach((k) => touched.add(k));
-      kicked = o;
-    }
-    const cand = improve(cost, kicked, fixed, near, touched, deadline);
-    if (cand.cost < cur.cost - 1e-6) { cur = cand; if (cand.cost < best.cost) best = cand; }
-  }
-  return { ...best, kicks };
-}
-
 // ---------------------------------------------------------------- checking against the real router
 
 const realCache = jsonCache("real-routes.json");
@@ -444,12 +286,12 @@ async function solveSet(routes, opts, mats) {
   console.log(`${key}: ${stops.length} houses, current seed ${before.toFixed(2)} km on the real roads`);
 
   const pen = new Float32Array(N * N);
+  const problem = { n: N, c: mats.C, start: mats.Lib };
   let candidates = [];
   let start = baseline;
   for (let round = 0; round <= opts.calibrate; round++) {
-    const cost = makeCost(mats, pen);
     for (let n = 0; n < opts.starts; n++) {
-      const r = iterate(mats, cost, start, fixed, stops, opts.seconds, 1000 * round + n + 1);
+      const r = search(problem, start, { fixed, stops, ms: opts.seconds * 1000, seed: 1000 * round + n + 1, pen });
       const km = sum(await realLegs(r.order)) / 1000;
       candidates.push({ order: r.order, modelKm: r.cost / 1000, realKm: km, round });
       console.log(`  round ${round} search ${n + 1}: model ${(r.cost / 1000).toFixed(2)} km, real ${km.toFixed(2)} km (${r.kicks} restarts)`);
@@ -458,7 +300,7 @@ async function solveSet(routes, opts, mats) {
     if (round === opts.calibrate) break;
     // where the model said "short" and the router said "long", add the difference to that pair and search again
     const real = await realLegs(top.order);
-    const model = legsGreedy(mats, top.order);
+    const model = legsGreedy(problem, top.order);
     let fixes = 0;
     for (let i = 1; i < top.order.length; i++) {
       const diff = real[i] - model[i];
@@ -511,10 +353,13 @@ function writeSeeds() {
     return r ? `  // ${k}: ${r.houses} houses, ${r.newKm.toFixed(2)} km on the road (was ${r.currentKm.toFixed(2)} km), direction-aware order\n` : `  // ${k}: not re-baked\n`;
   };
   const header = fs.readFileSync(path.join(ROOT, "src/data/seed-orders.ts"), "utf8").split("export const SEED_ORDERS")[0]
-    .replace(/\n\/\/ \d{4}-\d{2}-\d{2} direction-aware refresh:[\s\S]*?\n(?=\n|export)/, "\n");
+    .replace(/(\/\/\n)*\/\/ \d{4}-\d{2}-\d{2} direction-aware refresh:[\s\S]*$/, "")
+    .replace("// Precomputed via OR-Tools GUIDED_LOCAL_SEARCH on real OSRM driving-distance matrices.", "// Precomputed by scripts/bake-heading-seeds.mjs: direction-aware orders checked against OSRM /route.")
+    .replace(/(\n\/\/)+\s*$/, "")
+    .trimEnd();
   const stamp = new Date().toISOString().slice(0, 10);
   const body = keys.map((k) => `${note(k)}  "${k}": [\n${chunk(merged[k])}\n  ],`).join("\n");
-  const text = header.trimEnd() + `\n//\n// ${stamp} direction-aware refresh: orders re-baked with scripts/bake-heading-seeds.mjs so the car is\n// never assumed able to reverse at a stop. Each set was checked against OSRM /route (km figures below).\n\nexport const SEED_ORDERS: Record<string, string[]> = {\n${body}\n};\n`;
+  const text = header + `\n//\n// ${stamp} direction-aware refresh: orders re-baked with scripts/bake-heading-seeds.mjs so the car is\n// never assumed able to reverse at a stop. Each set was checked against OSRM /route (km figures below).\n\nexport const SEED_ORDERS: Record<string, string[]> = {\n${body}\n};\n`;
   fs.writeFileSync(path.join(ROOT, "src/data/seed-orders.ts"), text);
   console.log(`wrote ${keys.length} seeds (${results.length} re-baked) to src/data/seed-orders.ts`);
 }

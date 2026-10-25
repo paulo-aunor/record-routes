@@ -1,7 +1,8 @@
 import { anchorIdsFor } from "@/data/anchors";
 import type { Subscriber } from "@/types";
 import { matrixIdFor } from "./matrixAlias";
-import { insertStops, optimize, type Coord } from "./optimizer-v2";
+import { insertStops, orderStops } from "./headingData";
+import { optimize, type Coord } from "./optimizer-v2";
 import { deriveRouteId, type ParsedRoute, type ParsedSub } from "./pdfRouteList";
 import type { ImportedRoute } from "./registry-core";
 
@@ -103,12 +104,23 @@ export function buildImportedRoute(
 
   const byId = new Map(subs.map((s) => [s.id, { lat: s.lat, lng: s.lng }]));
   const addressOf = new Map(subs.map((s) => [s.id, matrixIdFor(s.address, s.city)]));
-  const solved = optimize({
+  const anchors = anchorIdsFor([id], subs);
+  // A quick straight-distance order gives the direction-aware search something good to start from.
+  const quick = optimize({
     stopIds: subs.map((s) => s.id),
     coordOf: (x) => byId.get(x),
     matrixIdOf: (x) => addressOf.get(x),
-    preKeep: anchorIdsFor([id], subs),
-    timeBudgetMs: 4000,
+    preKeep: anchors,
+    timeBudgetMs: 1500,
+  });
+  const solved = orderStops({
+    stopIds: subs.map((s) => s.id),
+    coordOf: (x) => byId.get(x),
+    matrixIdOf: (x) => addressOf.get(x),
+    start: { kind: "library" },
+    fixedIds: anchors,
+    candidates: [quick.orderedIds],
+    ms: 3500,
   });
 
   return {
@@ -171,12 +183,16 @@ export function buildUpdatedRoute(
 
   const byId = new Map(subs.map((s) => [s.id, { lat: s.lat, lng: s.lng }]));
   const addressOf = new Map(subs.map((s) => [s.id, matrixIdFor(s.address, s.city)]));
+  const kept = [...anchors, ...body];
+  const fresh = added.filter((s) => !anchorSet.has(s.id)).map((s) => s.id);
   const placed = insertStops({
-    order: [...anchors, ...body],
-    newIds: added.filter((s) => !anchorSet.has(s.id)).map((s) => s.id),
-    fixedPrefix: anchors.length,
+    stopIds: [...kept, ...fresh],
+    order: kept,
+    add: fresh,
+    fixedCount: anchors.length,
     coordOf: (x) => byId.get(x),
     matrixIdOf: (x) => addressOf.get(x),
+    start: { kind: "library" },
   });
 
   return {
