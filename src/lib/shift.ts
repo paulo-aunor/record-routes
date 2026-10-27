@@ -3,14 +3,17 @@ import type { RouteId, ShiftState } from "@/types";
 import { anchorIdsFor } from "@/data/anchors";
 import { SEED_ORDERS } from "@/data/seed-orders";
 import { isAtLibrary } from "./location";
-import { orderStops } from "./headingData";
+import { loadPaused } from "./paused";
+import { orderStops, plannedMeters } from "./headingData";
+import { appendRecord, buildRecord } from "./history";
 import { matrixIdFor } from "./matrixAlias";
 import { mergeOrder } from "./mergeOrder";
 import { optimize as optimizeV2, type Coord } from "./optimizer-v2";
 import {
   allSubscribers, importedSeed, isImportedRoute, revisionTag, subscribersForRoutes, subscribersForRoutesOn,
 } from "./registry";
-import { todayDayIndex } from "./schedule";
+import { paperDayIndex } from "./schedule";
+import { loadRateCents } from "./settings";
 import {
   loadShift, saveShift, todayKey, newShift, clearShift,
   loadLastOrder, saveLastOrder, routeSetKey,
@@ -107,6 +110,30 @@ export function planFromGps(
   return orderStops({ stopIds: solvable, coordOf, matrixIdOf, start: { kind: "gps", coord: here }, candidates, ms: 4000 }).orderedIds;
 }
 
+// Writes the finished shift into the history (pay, counts, time, planned distance) before it is cleared,
+// so a failure leaves the shift in place to try again.
+export async function recordShift(s: ShiftState): Promise<void> {
+  const [paused, rateCents] = await Promise.all([loadPaused(), loadRateCents()]);
+  const stoppedIds = s.orderedIds.filter((id) => paused[id]);
+  const subs = new Map(allSubscribers().map((x) => [x.id, x]));
+  const dueIds = s.orderedIds.filter((id) => !paused[id]);
+  // a shift that started from a live location has no library-anchored plan to measure
+  const plannedM = s.startMode === "gps" ? null : plannedMeters({
+    stopIds: dueIds,
+    order: dueIds,
+    coordOf: coordLookup(),
+    matrixIdOf: matrixLookup(),
+    start: { kind: "library" },
+  });
+  await appendRecord(buildRecord(s, {
+    stoppedIds,
+    rateCents,
+    plannedM,
+    finishedAt: Date.now(),
+    routeOf: (id) => subs.get(id)?.routeId,
+  }));
+}
+
 export function useShift() {
   const [state, setState] = useState<ShiftState | null>(null);
   const [ready, setReady] = useState(false);
@@ -125,7 +152,7 @@ export function useShift() {
   }, []);
 
   const start = useCallback(async (routeIds: RouteId[], deliveryDayIdx?: number, opts?: StartOptions) => {
-    const dayIdx = deliveryDayIdx ?? todayDayIndex();
+    const dayIdx = deliveryDayIdx ?? paperDayIndex();
     const eligibleIds = subscribersForRoutesOn(routeIds, dayIdx).map((s) => s.id);
     const excluded = new Set(opts?.excludeIds ?? []);
     const solvable = eligibleIds.filter((id) => !excluded.has(id));
@@ -248,6 +275,7 @@ export function useShift() {
   const finish = useCallback(async () => {
     const s = stateRef.current;
     if (!s) return;
+    await recordShift(s);
     if (s.startMode !== "gps") await saveLastOrder(s.routeIds, s.orderedIds, revisionTag(s.routeIds));
     await clearShift(todayKey());
     setState(null);
@@ -258,6 +286,7 @@ export function useShift() {
   const finishAsDone = useCallback(async () => {
     const s = stateRef.current;
     if (!s) return;
+    await recordShift(s);
     if (s.startMode !== "gps") await saveLastOrder(s.routeIds, s.orderedIds, revisionTag(s.routeIds));
     await clearShift(todayKey());
     setState(null);

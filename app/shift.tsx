@@ -10,7 +10,8 @@ import { getCurrentCoord } from "@/lib/location";
 import { noteKey, useNotes } from "@/lib/notes";
 import { usePaused } from "@/lib/paused";
 import { subscribersForRoutes, useRegistry } from "@/lib/registry";
-import { DAY_NAMES, todayDayIndex } from "@/lib/schedule";
+import { DAY_NAMES, nightOfPaperDay, paperDayIndex } from "@/lib/schedule";
+import { formatMoney, useRate } from "@/lib/settings";
 import { useShift } from "@/lib/shift";
 import type { Subscriber } from "@/types";
 
@@ -28,6 +29,7 @@ export default function Shift() {
   const { state, ready, reorder, rerouteFrom, markDelivered, unmarkDelivered, finish, finishAsDone, reset } = useShift();
   const { notes, setNote } = useNotes();
   const { paused, togglePaused } = usePaused();
+  const { rateCents } = useRate();
   const reg = useRegistry();
   const [rerouting, setRerouting] = useState(false);
   const [now, setNow] = useState(Date.now());
@@ -70,6 +72,7 @@ export default function Shift() {
   const nextStop = remaining[0];
   const allDone = remaining.length === 0;
   const elapsed = state.startedAt ? now - state.startedAt : 0;
+  const paperDay = state.deliveryDayIdx ?? paperDayIndex();
 
   const openNote = (s: Subscriber) => {
     setEditing(s);
@@ -81,23 +84,34 @@ export default function Shift() {
     closeNote();
   };
 
+  // Recording the shift can fail; say so and leave the shift in place so it can be tried again.
+  const closeShift = async (end: () => Promise<void>) => {
+    try {
+      await end();
+      router.replace("/");
+    } catch (e) {
+      Alert.alert("Couldn't save the shift", e instanceof Error ? e.message : String(e));
+    }
+  };
+
   const onFinish = () => {
     Alert.alert("Finish shift?", "Marks the shift complete.", [
       { text: "Cancel", style: "cancel" },
-      { text: "Finish", onPress: async () => { await finish(); router.replace("/"); } },
+      { text: "Finish", onPress: () => closeShift(finish) },
     ]);
   };
 
   const onShiftDone = () => {
     const remaining = stops.length - state.deliveredIds.length;
+    const pay = `Pays ${formatMoney(stops.length * rateCents)} for ${stops.length} house${stops.length === 1 ? "" : "s"}.`;
     Alert.alert(
       "Shift done?",
       remaining > 0
-        ? `Marks the remaining ${remaining} stop${remaining === 1 ? "" : "s"} as delivered and saves this order for next time.`
-        : "Marks the shift complete and saves this order for next time.",
+        ? `Marks the remaining ${remaining} stop${remaining === 1 ? "" : "s"} as delivered and saves this order for next time. ${pay}`
+        : `Marks the shift complete and saves this order for next time. ${pay}`,
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Shift done", onPress: async () => { await finishAsDone(); router.replace("/"); } },
+        { text: "Shift done", onPress: () => closeShift(finishAsDone) },
       ],
     );
   };
@@ -180,7 +194,7 @@ export default function Shift() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <Text style={styles.headerRoutes}>{state.routeIds.join(" · ")}  ·  {DAY_NAMES[state.deliveryDayIdx ?? todayDayIndex()]}</Text>
+          <Text style={styles.headerRoutes}>{state.routeIds.join(" · ")}  ·  {DAY_NAMES[nightOfPaperDay(paperDay)]} night · {DAY_NAMES[paperDay]} paper</Text>
           <Pressable style={styles.doneBtn} onPress={onShiftDone}>
             <Text style={styles.doneBtnText}>Shift done</Text>
           </Pressable>
@@ -190,6 +204,7 @@ export default function Shift() {
         </View>
         <View style={styles.headerRow}>
           <Text style={styles.headerStat}>{delivered.length} / {stops.length}</Text>
+          <Text style={styles.headerStat}>{formatMoney(delivered.length * rateCents)} of {formatMoney(stops.length * rateCents)}</Text>
           <Text style={styles.headerStat}>{formatElapsed(elapsed)}</Text>
         </View>
       </View>
@@ -208,7 +223,7 @@ export default function Shift() {
       {allDone && (
         <View style={[styles.next, styles.doneBanner]}>
           <Text style={styles.doneTitle}>All delivered</Text>
-          <Text style={styles.doneSub}>Time: {formatElapsed(elapsed)} · Go home.</Text>
+          <Text style={styles.doneSub}>Time: {formatElapsed(elapsed)} · Earned {formatMoney(delivered.length * rateCents)} · Go home.</Text>
           <Pressable style={styles.primary} onPress={onFinish}>
             <Text style={styles.primaryText}>Finish shift</Text>
           </Pressable>

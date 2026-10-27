@@ -8,6 +8,11 @@ const PAUSED_KEY = "@rr/pausedSubs/v1";
 
 export type PausedMap = Record<string, true>;
 
+export async function loadPaused(): Promise<PausedMap> {
+  const raw = await AsyncStorage.getItem(PAUSED_KEY);
+  return raw ? (JSON.parse(raw) as PausedMap) : {};
+}
+
 // A route update gives surviving houses new ids (built-in houses have numbered
 // ids, imported ones are named by address). Copies each stopped house's flag to
 // its new id so it stays stopped. The old flag is left alone in case the old

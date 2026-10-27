@@ -39,6 +39,15 @@ export function deliversOn(schedule: string | undefined, dayIdx: number): boolea
   return days.has(dayIdx);
 }
 
-export function todayDayIndex(now: Date = new Date()): number {
-  return now.getDay();
+// Papers go out the night before: Sunday night is Monday's paper, Friday night is Saturday's.
+// There is no Sunday paper, so the nights worked are Sunday to Friday.
+export const NIGHT_INDEXES = [0, 1, 2, 3, 4, 5];
+export const paperDayOfNight = (night: number): number => (night + 1) % 7;
+export const nightOfPaperDay = (paperDay: number): number => (paperDay + 6) % 7;
+
+// Which paper tonight's shift is for. After noon it is tomorrow's paper; before noon (a shift still
+// running past midnight) it is today's. Sunday has no paper, so Saturday evening points at Monday's.
+export function paperDayIndex(now: Date = new Date()): number {
+  const day = now.getHours() >= 12 ? (now.getDay() + 1) % 7 : now.getDay();
+  return day === 0 ? 1 : day;
 }

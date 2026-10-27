@@ -5,7 +5,8 @@ import { LIBRARY } from "@/data/routes";
 import { getCurrentCoord } from "@/lib/location";
 import { usePaused } from "@/lib/paused";
 import { countByRoute, countByRouteOn, managedRoutes, registry, useRegistry, visibleRoutes } from "@/lib/registry";
-import { DAY_NAMES, todayDayIndex } from "@/lib/schedule";
+import { DAY_NAMES, NIGHT_INDEXES, nightOfPaperDay, paperDayIndex, paperDayOfNight } from "@/lib/schedule";
+import { formatMoney, useRate } from "@/lib/settings";
 import { useShift } from "@/lib/shift";
 import type { RouteId } from "@/types";
 
@@ -20,9 +21,12 @@ export default function Home() {
   const [selected, setSelected] = useState<Set<RouteId>>(new Set());
   const [startFrom, setStartFrom] = useState<"library" | "gps">("library");
   const [busy, setBusy] = useState(false);
-  const realToday = useMemo(() => todayDayIndex(), []);
-  const [dayIdx, setDayIdx] = useState<number>(realToday);
-  const dayName = DAY_NAMES[dayIdx];
+  const { rateCents } = useRate();
+  // Papers go out the night before: the chips are the nights worked, each showing the paper it delivers.
+  const realNight = useMemo(() => nightOfPaperDay(paperDayIndex()), []);
+  const [nightIdx, setNightIdx] = useState<number>(realNight);
+  const dayIdx = paperDayOfNight(nightIdx);
+  const nightText = (n: number) => `${DAY_NAMES[n]} night · ${DAY_NAMES[paperDayOfNight(n)]} paper`;
   const counts = useMemo(() => countByRoute(), [reg.state]);
   const dayCounts = useMemo(() => countByRouteOn(dayIdx), [dayIdx, reg.state]);
   // A route hidden after being ticked must not stay selected.
@@ -104,30 +108,31 @@ export default function Home() {
         </Pressable>
       )}
 
-      <Text style={styles.section}>Delivering for</Text>
+      <Text style={styles.section}>Night you're out</Text>
       <View style={styles.dayRow}>
-        {DAY_NAMES.map((name, i) => {
-          const isSelected = i === dayIdx;
-          const isRealToday = i === realToday;
+        {NIGHT_INDEXES.map((i) => {
+          const isSelected = i === nightIdx;
+          const isRealNight = i === realNight;
           return (
             <Pressable
               key={i}
               style={[styles.dayPill, isSelected && styles.dayPillActive]}
-              onPress={() => setDayIdx(i)}
+              onPress={() => setNightIdx(i)}
             >
-              <Text style={[styles.dayPillText, isSelected && styles.dayPillTextActive]}>{name}</Text>
-              {isRealToday && <View style={[styles.dayPillDot, isSelected && styles.dayPillDotOnActive]} />}
+              <Text style={[styles.dayPillText, isSelected && styles.dayPillTextActive]}>{DAY_NAMES[i]}</Text>
+              <Text style={[styles.dayPillSub, isSelected && styles.dayPillTextActive]}>{DAY_NAMES[paperDayOfNight(i)]} paper</Text>
+              {isRealNight && <View style={[styles.dayPillDot, isSelected && styles.dayPillDotOnActive]} />}
             </Pressable>
           );
         })}
       </View>
-      {dayIdx !== realToday && (
-        <Pressable style={styles.linkBtn} onPress={() => setDayIdx(realToday)}>
-          <Text style={styles.linkText}>Reset to today ({DAY_NAMES[realToday]})</Text>
+      {nightIdx !== realNight && (
+        <Pressable style={styles.linkBtn} onPress={() => setNightIdx(realNight)}>
+          <Text style={styles.linkText}>Reset to tonight ({nightText(realNight)})</Text>
         </Pressable>
       )}
 
-      <Text style={styles.section}>Pick routes · {dayName}</Text>
+      <Text style={styles.section}>Pick routes · {nightText(nightIdx)}</Text>
 
       {routes.map((r) => {
         const isOn = selected.has(r.id);
@@ -166,6 +171,10 @@ export default function Home() {
         <Text style={styles.addRouteText}>Add route from PDF</Text>
       </Pressable>
 
+      <Pressable style={styles.earningsBtn} onPress={() => router.push("/earnings" as never)}>
+        <Text style={styles.earningsText}>Earnings and reports</Text>
+      </Pressable>
+
       <Pressable style={styles.pausedBanner} onPress={() => router.push("/routes" as never)}>
         <Text style={styles.pausedBannerText}>
           {managedCount === 0
@@ -202,7 +211,7 @@ export default function Home() {
         <Text style={styles.summaryText}>
           {chosen.length === 0
             ? "No routes selected"
-            : `${totalSelected} stops · start from ${startFrom === "gps" ? "your current location" : LIBRARY.name}`}
+            : `${totalSelected} stops · ${formatMoney(totalSelected * rateCents)} due · start from ${startFrom === "gps" ? "your current location" : LIBRARY.name}`}
         </Text>
       </View>
 
@@ -263,6 +272,7 @@ const styles = StyleSheet.create({
   dayPillActive: { backgroundColor: "#facc15", borderColor: "#facc15" },
   dayPillText: { color: "#aaa", fontSize: 13, fontWeight: "600" },
   dayPillTextActive: { color: "#0a0a0a", fontWeight: "700" },
+  dayPillSub: { color: "#666", fontSize: 9, marginTop: 2 },
   dayPillDot: {
     width: 4, height: 4, borderRadius: 2, backgroundColor: "#4ade80", marginTop: 4,
   },
@@ -277,6 +287,11 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: "#60a5fa",
   },
   addRouteText: { color: "#60a5fa", fontSize: 15, fontWeight: "700" },
+  earningsBtn: {
+    backgroundColor: "#1a1a1a", borderRadius: 10, padding: 14, alignItems: "center",
+    borderWidth: 1, borderColor: "#4ade80",
+  },
+  earningsText: { color: "#4ade80", fontSize: 15, fontWeight: "700" },
   hideLink: { color: "#666", fontSize: 12, marginTop: 8 },
   errorBox: { backgroundColor: "#2a0f0f", borderRadius: 10, padding: 12, borderWidth: 1, borderColor: "#f87171" },
   errorText: { color: "#fca5a5", fontSize: 13 },

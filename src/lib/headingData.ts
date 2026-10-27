@@ -4,7 +4,7 @@
 
 import { HEADING_DATA_B64, HEADING_IDS } from "@/data/heading-matrix";
 import { LIBRARY } from "@/data/routes";
-import { insertCheapest, makeCost, search, type Problem } from "./headingSearch";
+import { insertCheapest, legsGreedy, makeCost, search, type Problem } from "./headingSearch";
 import { CIRCUITY, haversineM, SNAP_M, straightRoadMeters, type Coord } from "./optimizer-v2";
 
 const N = HEADING_IDS.length;
@@ -178,4 +178,12 @@ export function insertStops(input: HeadingInsertInput): HeadingOrderResult {
     distanceM: makeCost(problem)(merged),
     estimatedStops: estimated,
   };
+}
+
+// Road distance of an order, each leg taking the shortest way from the direction the car is facing.
+export function plannedMeters(input: HeadingInput & { order: readonly string[] }): number {
+  if (input.order.length === 0) return 0;
+  const { problem, index } = buildProblem({ ...input, stopIds: input.order });
+  const ks = input.order.map((id) => index.get(id) as number);
+  return legsGreedy(problem, ks).reduce((t, m) => t + m, 0);
 }
