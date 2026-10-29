@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useFocusEffect } from "expo-router";
 import {
-  addDays, delivered, duePayCents, nightLabel, nightOf, nightRecords, paperLabel, payCents,
+  addDays, delivered, duePayCents, kmText, minText, nightLabel, nightOf, nightRecords, paperLabel, payCents,
   totalsOf, useHistory, weekLabel, weekReport, weekStart, type ShiftRecord, type Totals,
 } from "@/lib/history";
 import { usePaused } from "@/lib/paused";
@@ -13,7 +13,6 @@ const hoursText = (h: number) => {
   const m = Math.round(h * 60);
   return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
 };
-const kmText = (m: number) => `${(m / 1000).toFixed(1)} km`;
 const perHour = (v: number | null, f: (n: number) => string) => (v === null ? "n/a" : `${f(v)}/h`);
 
 // "+$3.15", "-0.4 h"; nothing to compare when either side has no figure.
@@ -62,7 +61,23 @@ function TotalsCard({ title, t, before }: { title: string; t: Totals; before?: T
         value={perHour(t.centsPerHour, formatMoney)}
         note={vs ? change(t.centsPerHour, vs.centsPerHour, formatMoney) : null}
       />
+      <Line
+        label="Distance moved (GPS)"
+        value={t.drivenM === null ? "not recorded" : kmText(t.drivenM) + (t.drivenPartial ? " (some shifts not recorded)" : "")}
+        note={vs ? change(t.drivenM, vs.drivenM, kmText) : null}
+      />
+      <Line
+        label="Distance covered (estimate)"
+        value={t.coveredM === null ? "n/a" : kmText(t.coveredM) + (t.coveredPartial ? " (some shifts not measured)" : "")}
+        note={vs ? change(t.coveredM, vs.coveredM, kmText) : null}
+      />
+      <Line label="Distance per house" value={t.kmPerHouse === null ? "n/a" : `${(t.kmPerHouse * 1000).toFixed(0)} m`} note={vs && t.kmPerHouse !== null && vs.kmPerHouse !== null ? change(t.kmPerHouse * 1000, vs.kmPerHouse * 1000, (n) => `${n.toFixed(0)} m`) : null} />
       <Line label="Planned road distance" value={planned} note={vs ? change(t.plannedM, vs.plannedM, kmText) : null} />
+      <Line
+        label="Saved by optimizing"
+        value={t.optimizations === 0 ? "none" : t.savedM > 50 ? `${kmText(t.savedM)}, ${minText(t.savedM)}` : "no saving"}
+        note={t.optimizations === 0 ? null : `${t.optimizations} time${t.optimizations === 1 ? "" : "s"}`}
+      />
     </View>
   );
 }
@@ -74,7 +89,10 @@ function ShiftRow({ r }: { r: ShiftRecord }) {
       <Text style={styles.shiftRoutes}>{r.routeIds.join(" · ")}</Text>
       <Text style={styles.shiftMeta}>
         {delivered(r)} of {r.due} delivered · {formatMoney(payCents(r))} of {formatMoney(duePayCents(r))} · {hoursText(hours)}
+        {r.drivenM !== null ? ` · ${kmText(r.drivenM)} moved (GPS)` : ""}
+        {r.coveredM !== null ? ` · ${kmText(r.coveredM)} covered` : ""}
         {r.plannedM !== null ? ` · ${kmText(r.plannedM)} planned` : ""}
+        {r.savedM > 50 ? ` · saved ${kmText(r.savedM)}` : ""}
       </Text>
     </View>
   );

@@ -8,6 +8,7 @@ import { countByRoute, countByRouteOn, managedRoutes, registry, useRegistry, vis
 import { DAY_NAMES, NIGHT_INDEXES, nightOfPaperDay, paperDayIndex, paperDayOfNight } from "@/lib/schedule";
 import { formatMoney, useRate } from "@/lib/settings";
 import { useShift } from "@/lib/shift";
+import { startTracking } from "@/lib/tracking";
 import type { RouteId } from "@/types";
 
 export default function Home() {
@@ -48,11 +49,14 @@ export default function Home() {
   const onStart = async () => {
     setBusy(true);
     try {
-      if (startFrom === "gps") {
-        const startCoord = await getCurrentCoord();
-        await start(chosen, dayIdx, { startCoord, excludeIds: Object.keys(paused) });
-      } else {
-        await start(chosen, dayIdx, { excludeIds: Object.keys(paused) });
+      const shift = startFrom === "gps"
+        ? await start(chosen, dayIdx, { startCoord: await getCurrentCoord(), excludeIds: Object.keys(paused) })
+        : await start(chosen, dayIdx, { excludeIds: Object.keys(paused) });
+      // The shift runs either way; without the recording, distance driven isn't measured.
+      try {
+        if (shift.startedAt !== null) await startTracking(shift.startedAt);
+      } catch (e) {
+        Alert.alert("GPS recording is off", `${e instanceof Error ? e.message : String(e)}\n\nThe shift runs without it. Distance covered is still estimated from the houses you tick.`);
       }
       router.push("/shift");
     } catch (e) {

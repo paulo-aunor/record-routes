@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { RouteId, ShiftState } from "@/types";
+import type { Optimization, RouteId, ShiftState } from "@/types";
 import { anchorIdsFor } from "@/data/anchors";
 import { SEED_ORDERS } from "@/data/seed-orders";
 import { isAtLibrary } from "./location";
 import { loadPaused } from "./paused";
-import { orderStops, plannedMeters } from "./headingData";
+import { orderStops, plannedMeters, type StartSpec } from "./headingData";
 import { appendRecord, buildRecord } from "./history";
 import { matrixIdFor } from "./matrixAlias";
 import { mergeOrder } from "./mergeOrder";
@@ -14,6 +14,7 @@ import {
 } from "./registry";
 import { paperDayIndex } from "./schedule";
 import { loadRateCents } from "./settings";
+import { stopTracking, trackedMeters } from "./tracking";
 import {
   loadShift, saveShift, todayKey, newShift, clearShift,
   loadLastOrder, saveLastOrder, routeSetKey,
@@ -75,7 +76,7 @@ export function planReroute(
   here: Coord,
   coordOf: (id: string) => Coord | undefined,
   matrixIdOf?: (id: string) => string | undefined,
-): { orderedIds: string[]; stops: number } {
+): { orderedIds: string[]; stops: number; beforeM: number; afterM: number } {
   const stopped = new Set(stoppedIds);
   const delivered = new Set(deliveredIds);
   const doneInOrder = orderedIds.filter((id) => delivered.has(id));
@@ -92,7 +93,11 @@ export function planReroute(
     candidates: [remaining, quick.orderedIds],
     ms: 3000,
   });
-  return { orderedIds: [...doneInOrder, ...solved.orderedIds, ...hidden], stops: remaining.length };
+  // Road distance of the houses still to deliver, from here, in the order they were in and in the new order.
+  const start: StartSpec = { kind: "gps", coord: here };
+  const beforeM = plannedMeters({ stopIds: remaining, order: remaining, coordOf, matrixIdOf, start });
+  const afterM = plannedMeters({ stopIds: remaining, order: solved.orderedIds, coordOf, matrixIdOf, start });
+  return { orderedIds: [...doneInOrder, ...solved.orderedIds, ...hidden], stops: remaining.length, beforeM, afterM };
 }
 
 // The order for a shift that starts away from the library. The usual library order (when there is one) and a quick
@@ -103,11 +108,38 @@ export function planFromGps(
   here: Coord,
   coordOf: (id: string) => Coord | undefined,
   matrixIdOf?: (id: string) => string | undefined,
-): string[] {
+): { orderedIds: string[]; beforeM: number | null; afterM: number } {
   const solvableSet = new Set(solvable);
   const quick = optimizeV2({ stopIds: solvable, startCoord: here, coordOf, matrixIdOf, timeBudgetMs: 1500 });
   const candidates = libraryOrder ? [libraryOrder.filter((id) => solvableSet.has(id)), quick.orderedIds] : [quick.orderedIds];
-  return orderStops({ stopIds: solvable, coordOf, matrixIdOf, start: { kind: "gps", coord: here }, candidates, ms: 4000 }).orderedIds;
+  const start: StartSpec = { kind: "gps", coord: here };
+  const { orderedIds } = orderStops({ stopIds: solvable, coordOf, matrixIdOf, start, candidates, ms: 4000 });
+  // the previous order is the usual library order, now driven from where the shift starts
+  const usual = libraryOrder ? libraryOrder.filter((id) => solvableSet.has(id)) : null;
+  return {
+    orderedIds,
+    beforeM: usual ? plannedMeters({ stopIds: usual, order: usual, coordOf, matrixIdOf, start }) : null,
+    afterM: plannedMeters({ stopIds: orderedIds, order: orderedIds, coordOf, matrixIdOf, start }),
+  };
+}
+
+// Road distance of the shift as driven: `plannedM` along the whole order from where it started, `coveredM` along
+// the houses delivered, in the order they were ticked. With `final` the houses Shift done counts as delivered
+// follow, in the order they stand. Neither includes the drive home.
+export function shiftDistances(s: ShiftState, stoppedIds: readonly string[], final: boolean): { plannedM: number; coveredM: number } {
+  const stopped = new Set(stoppedIds);
+  const due = s.orderedIds.filter((id) => !stopped.has(id));
+  const dueSet = new Set(due);
+  const ticked = s.deliveredIds.filter((id) => dueSet.has(id));
+  const tickedSet = new Set(ticked);
+  const skipped = new Set(s.skippedIds);
+  const walked = final ? [...ticked, ...due.filter((id) => !tickedSet.has(id) && !skipped.has(id))] : ticked;
+  const start: StartSpec = s.startCoord ? { kind: "gps", coord: s.startCoord } : { kind: "library" };
+  const coordOf = coordLookup(), matrixIdOf = matrixLookup();
+  return {
+    plannedM: plannedMeters({ stopIds: due, order: due, coordOf, matrixIdOf, start }),
+    coveredM: plannedMeters({ stopIds: walked, order: walked, coordOf, matrixIdOf, start }),
+  };
 }
 
 // Writes the finished shift into the history (pay, counts, time, planned distance) before it is cleared,
@@ -116,22 +148,19 @@ export async function recordShift(s: ShiftState): Promise<void> {
   const [paused, rateCents] = await Promise.all([loadPaused(), loadRateCents()]);
   const stoppedIds = s.orderedIds.filter((id) => paused[id]);
   const subs = new Map(allSubscribers().map((x) => [x.id, x]));
-  const dueIds = s.orderedIds.filter((id) => !paused[id]);
-  // a shift that started from a live location has no library-anchored plan to measure
-  const plannedM = s.startMode === "gps" ? null : plannedMeters({
-    stopIds: dueIds,
-    order: dueIds,
-    coordOf: coordLookup(),
-    matrixIdOf: matrixLookup(),
-    start: { kind: "library" },
-  });
+  const { plannedM, coveredM } = shiftDistances(s, stoppedIds, true);
+  if (s.startedAt === null) throw new Error("This shift never started, so there is nothing to record.");
+  const drivenM = await trackedMeters(s.startedAt);   // from the GPS recording; null when there wasn't one
   await appendRecord(buildRecord(s, {
     stoppedIds,
     rateCents,
     plannedM,
+    coveredM,
+    drivenM,
     finishedAt: Date.now(),
     routeOf: (id) => subs.get(id)?.routeId,
   }));
+  await stopTracking(s.startedAt);   // only once the shift is safely recorded
 }
 
 export function useShift() {
@@ -165,6 +194,7 @@ export function useShift() {
     const revTag = revisionTag(routeIds);
 
     let orderedIds: string[];
+    const optimizations: Optimization[] = [];
     if (fromGps) {
       // Away from the library: library-anchored seeds and saved orders don't fit,
       // so solve from where Paulo is standing.
@@ -172,7 +202,11 @@ export function useShift() {
       const seed = getExactSeed(routeIds);
       const base = saved && saved.length ? mergeOrder(saved, eligibleIds, seed) : seed ? mergeOrder(seed, eligibleIds, seed) : null;
       await nextFrame();
-      orderedIds = [...planFromGps(solvable, base, startCoord, coordOf, matrixLookup()), ...hiddenTail];
+      const plan = planFromGps(solvable, base, startCoord, coordOf, matrixLookup());
+      orderedIds = [...plan.orderedIds, ...hiddenTail];
+      if (plan.beforeM !== null) {
+        optimizations.push({ at: Date.now(), kind: "start", houses: solvable.length, beforeM: plan.beforeM, afterM: plan.afterM });
+      }
     } else {
       // Priority: saved last shift's order → exact seed → on-device solver.
       const saved = await loadLastOrder(routeIds, revTag);
@@ -199,7 +233,11 @@ export function useShift() {
       }
     }
 
-    const s = newShift(todayKey(), routeIds, orderedIds, dayIdx, fromGps ? "gps" : "library");
+    const s: ShiftState = {
+      ...newShift(todayKey(), routeIds, orderedIds, dayIdx, fromGps ? "gps" : "library"),
+      startCoord: fromGps ? startCoord : undefined,
+      optimizations,
+    };
     await saveShift(s);
     setState(s);
     return s;
@@ -214,11 +252,12 @@ export function useShift() {
     const plan = planReroute(s.orderedIds, s.deliveredIds, stoppedIds, here, coordLookup(), matrixLookup());
     setState((prev) => {
       if (!prev) return prev;
-      const next: ShiftState = { ...prev, orderedIds: plan.orderedIds, startMode: "gps" };
+      const note: Optimization = { at: Date.now(), kind: "reroute", houses: plan.stops, beforeM: plan.beforeM, afterM: plan.afterM };
+      const next: ShiftState = { ...prev, orderedIds: plan.orderedIds, startMode: "gps", optimizations: [...(prev.optimizations ?? []), note] };
       void saveShift(next);
       return next;
     });
-    return { stops: plan.stops };
+    return { stops: plan.stops, beforeM: plan.beforeM, afterM: plan.afterM };
   }, []);
 
   const reorder = useCallback(async (orderedIds: string[]) => {
@@ -293,6 +332,8 @@ export function useShift() {
   }, []);
 
   const reset = useCallback(async () => {
+    const s = stateRef.current;
+    if (s?.startedAt != null) await stopTracking(s.startedAt);
     await clearShift(todayKey());
     setState(null);
   }, []);

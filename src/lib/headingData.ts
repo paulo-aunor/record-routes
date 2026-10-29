@@ -2,6 +2,7 @@
 // src/data/heading-matrix.ts. Houses the data doesn't cover (new addresses from an imported PDF) get a
 // straight-line estimate that is the same whichever way the car faces, so they never help or hurt a direction.
 
+import { CUT_THROUGH } from "@/data/cut-through";
 import { HEADING_DATA_B64, HEADING_IDS } from "@/data/heading-matrix";
 import { LIBRARY } from "@/data/routes";
 import { insertCheapest, legsGreedy, makeCost, search, type Problem } from "./headingSearch";
@@ -47,6 +48,22 @@ function data(): Data {
 
 const metres = (v: number) => (v === NONE ? Infinity : v);
 
+// Penalty in metres for pairs whose route cuts through a car park or private lane, by house pair (either direction).
+let penalties: Map<number, number> | null = null;
+function cutThroughPenalties(): Map<number, number> {
+  if (penalties) return penalties;
+  const index = data().index;
+  const map = new Map<number, number>();
+  for (const [a, b, m] of CUT_THROUGH) {
+    const ia = index.get(a), ib = index.get(b);
+    if (ia === undefined || ib === undefined) throw new Error(`cut-through.ts names a house the road data doesn't have: ${a} or ${b}.`);
+    const key = Math.min(ia, ib) * N + Math.max(ia, ib);
+    map.set(key, Math.max(map.get(key) ?? 0, m));
+  }
+  penalties = map;
+  return map;
+}
+
 export type StartSpec = { kind: "library" } | { kind: "gps"; coord: Coord };
 
 export type HeadingInput = {
@@ -58,9 +75,11 @@ export type HeadingInput = {
 
 type Built = { problem: Problem; index: Map<string, number>; estimated: number };
 
-// Distances between exactly these houses, indexed by position in stopIds.
-export function buildProblem(input: HeadingInput): Built {
+// Distances between exactly these houses, indexed by position in stopIds. Ordering adds the cut-through penalties;
+// measuring a distance that will really be driven leaves them out.
+export function buildProblem(input: HeadingInput & { withPenalties?: boolean }): Built {
   const d = data();
+  const pen = input.withPenalties === false ? null : cutThroughPenalties();
   const ids = input.stopIds;
   const n = ids.length;
   const coords = ids.map((id) => {
@@ -78,7 +97,8 @@ export function buildProblem(input: HeadingInput): Built {
       const ka = known[a], kb = known[b];
       if (ka >= 0 && kb >= 0) {
         if (ka === kb) continue;   // two stops at one address
-        for (let q = 0; q < 4; q++) c[q][a * n + b] = metres(d.tables[q * N * N + ka * N + kb]);
+        const extra = pen ? pen.get(Math.min(ka, kb) * N + Math.max(ka, kb)) ?? 0 : 0;
+        for (let q = 0; q < 4; q++) c[q][a * n + b] = metres(d.tables[q * N * N + ka * N + kb]) + extra;
       } else {
         const e = straightRoadMeters(coords[a], coords[b]);
         for (let q = 0; q < 4; q++) c[q][a * n + b] = e;
@@ -183,7 +203,7 @@ export function insertStops(input: HeadingInsertInput): HeadingOrderResult {
 // Road distance of an order, each leg taking the shortest way from the direction the car is facing.
 export function plannedMeters(input: HeadingInput & { order: readonly string[] }): number {
   if (input.order.length === 0) return 0;
-  const { problem, index } = buildProblem({ ...input, stopIds: input.order });
+  const { problem, index } = buildProblem({ ...input, stopIds: input.order, withPenalties: false });
   const ks = input.order.map((id) => index.get(id) as number);
   return legsGreedy(problem, ks).reduce((t, m) => t + m, 0);
 }

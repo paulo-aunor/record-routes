@@ -72,6 +72,21 @@ function anchorsFor(routes) {
   return out;
 }
 
+// Pairs whose route cuts through a car park or private lane (src/data/cut-through.ts, written by
+// scripts/audit-cut-throughs.mjs), as a per-pair penalty in metres, either direction.
+function cutThroughPenalties() {
+  const file = path.join(ROOT, "src/data/cut-through.ts");
+  if (!fs.existsSync(file)) throw new Error("src/data/cut-through.ts is missing; run `node scripts/audit-cut-throughs.mjs` first");
+  const pen = new Float32Array(N * N);
+  for (const m of fs.readFileSync(file, "utf8").matchAll(/\["([^"]+)", "([^"]+)", (\d+)\]/g)) {
+    const a = IDX.get(m[1]), b = IDX.get(m[2]);
+    if (a === undefined || b === undefined) throw new Error(`cut-through.ts names an unknown house: ${m[1]} or ${m[2]}`);
+    pen[a * N + b] = Math.max(pen[a * N + b], +m[3]);
+    pen[b * N + a] = Math.max(pen[b * N + a], +m[3]);
+  }
+  return pen;
+}
+
 function readSeeds() {
   const src = fs.readFileSync(path.join(ROOT, "src/data/seed-orders.ts"), "utf8");
   const seeds = {};
@@ -282,10 +297,17 @@ async function solveSet(routes, opts, mats) {
   const fixed = fixedIds.length;
   if (fixedIds.some((k, i) => baseline[i] !== k)) throw new Error(`${key}: the existing seed doesn't start with the fixed first houses`);
 
+  const staticPen = cutThroughPenalties();
+  const penaltyKm = (order) => {
+    let t = 0;
+    for (let i = 1; i < order.length; i++) t += staticPen[order[i - 1] * N + order[i]];
+    return t / 1000;
+  };
   const before = sum(await realLegs(baseline)) / 1000;
-  console.log(`${key}: ${stops.length} houses, current seed ${before.toFixed(2)} km on the real roads`);
+  const beforeEff = before + penaltyKm(baseline);   // distance plus what the cut-throughs it uses are charged
+  console.log(`${key}: ${stops.length} houses, current seed ${before.toFixed(2)} km on the real roads, ${penaltyKm(baseline).toFixed(2)} km of cut-through penalty`);
 
-  const pen = new Float32Array(N * N);
+  const pen = Float32Array.from(staticPen);
   const problem = { n: N, c: mats.C, start: mats.Lib };
   let candidates = [];
   let start = baseline;
@@ -293,10 +315,11 @@ async function solveSet(routes, opts, mats) {
     for (let n = 0; n < opts.starts; n++) {
       const r = search(problem, start, { fixed, stops, ms: opts.seconds * 1000, seed: 1000 * round + n + 1, pen });
       const km = sum(await realLegs(r.order)) / 1000;
-      candidates.push({ order: r.order, modelKm: r.cost / 1000, realKm: km, round });
-      console.log(`  round ${round} search ${n + 1}: model ${(r.cost / 1000).toFixed(2)} km, real ${km.toFixed(2)} km (${r.kicks} restarts)`);
+      const eff = km + penaltyKm(r.order);
+      candidates.push({ order: r.order, modelKm: r.cost / 1000, realKm: km, effKm: eff, round });
+      console.log(`  round ${round} search ${n + 1}: model ${(r.cost / 1000).toFixed(2)} km, real ${km.toFixed(2)} km, with cut-through penalty ${eff.toFixed(2)} km (${r.kicks} restarts)`);
     }
-    const top = candidates.reduce((a, b) => (b.realKm < a.realKm ? b : a));
+    const top = candidates.reduce((a, b) => (b.effKm < a.effKm ? b : a));
     if (round === opts.calibrate) break;
     // where the model said "short" and the router said "long", add the difference to that pair and search again
     const real = await realLegs(top.order);
@@ -310,20 +333,23 @@ async function solveSet(routes, opts, mats) {
     if (fixes === 0) break;
     start = top.order;
   }
-  const best = candidates.reduce((a, b) => (b.realKm < a.realKm ? b : a));
+  const best = candidates.reduce((a, b) => (b.effKm < a.effKm ? b : a));
   // never ship something worse than what's already there
-  const keep = best.realKm < before ? best : { order: baseline, realKm: before, modelKm: null, round: -1 };
+  const keep = best.effKm < beforeEff - 0.0005 ? best : { order: baseline, realKm: before, effKm: beforeEff, modelKm: null, round: -1 };
+  const file = path.join(OUT_DIR, `${key}.json`);
+  const prior = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : null;
   const result = {
     set: key,
     houses: stops.length,
     order: keep.order.map((k) => IDS[k]),
-    currentKm: +before.toFixed(3),
+    currentKm: prior?.currentKm ?? +before.toFixed(3),   // the first baseline stays the reference through later re-bakes
     newKm: +keep.realKm.toFixed(3),
+    cutThroughPenaltyKm: +penaltyKm(keep.order).toFixed(3),
     modelKm: keep.modelKm === null ? null : +keep.modelKm.toFixed(3),
     bakedOn: new Date().toISOString().slice(0, 10),
   };
-  fs.writeFileSync(path.join(OUT_DIR, `${key}.json`), JSON.stringify(result, null, 1));
-  console.log(`  -> ${key}: ${before.toFixed(2)} km -> ${keep.realKm.toFixed(2)} km (${((keep.realKm / before - 1) * 100).toFixed(1)}%)\n`);
+  fs.writeFileSync(file, JSON.stringify(result, null, 1));
+  console.log(`  -> ${key}: ${before.toFixed(2)} km -> ${keep.realKm.toFixed(2)} km (${((keep.realKm / before - 1) * 100).toFixed(1)}%); cut-through penalty ${penaltyKm(baseline).toFixed(2)} km -> ${penaltyKm(keep.order).toFixed(2)} km\n`);
   return result;
 }
 

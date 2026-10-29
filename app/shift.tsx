@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useKeepAwake } from "expo-keep-awake";
@@ -8,11 +8,13 @@ import { DEPOT_NOTES } from "@/data/depot-notes";
 import { openInGoogleMaps } from "@/lib/navigation";
 import { getCurrentCoord } from "@/lib/location";
 import { noteKey, useNotes } from "@/lib/notes";
+import { kmText, minText, savingText } from "@/lib/history";
 import { usePaused } from "@/lib/paused";
 import { subscribersForRoutes, useRegistry } from "@/lib/registry";
 import { DAY_NAMES, nightOfPaperDay, paperDayIndex } from "@/lib/schedule";
 import { formatMoney, useRate } from "@/lib/settings";
-import { useShift } from "@/lib/shift";
+import { shiftDistances, useShift } from "@/lib/shift";
+import { isTracking, lastTrackError, startTracking, trackedMeters } from "@/lib/tracking";
 import type { Subscriber } from "@/types";
 
 function formatElapsed(ms: number): string {
@@ -40,6 +42,43 @@ export default function Shift() {
     const t = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(t);
   }, []);
+
+  // What the GPS recording has measured so far. Read again every 20 s; a failure is shown, not hidden.
+  const [gps, setGps] = useState<{ drivenM: number | null; on: boolean; error: string | null }>({ drivenM: null, on: false, error: null });
+  const startedAt = state?.startedAt ?? null;
+  const readGps = useCallback(async () => {
+    if (startedAt === null) return;
+    try {
+      const [drivenM, on, error] = await Promise.all([trackedMeters(startedAt), isTracking(startedAt), lastTrackError()]);
+      setGps({ drivenM, on, error });
+    } catch (e) {
+      setGps({ drivenM: null, on: false, error: e instanceof Error ? e.message : String(e) });
+    }
+  }, [startedAt]);
+  useEffect(() => {
+    void readGps();
+    const t = setInterval(() => void readGps(), 20_000);
+    return () => clearInterval(t);
+  }, [readGps]);
+  const turnOnGps = async () => {
+    if (startedAt === null) return;
+    try {
+      await startTracking(startedAt);
+    } catch (e) {
+      Alert.alert("Couldn't turn on GPS recording", e instanceof Error ? e.message : String(e));
+    }
+    await readGps();
+  };
+
+  // Distance driven so far (along the houses ticked off) against the planned total. A failure is shown, not hidden.
+  const distances = useMemo(() => {
+    if (!state) return { value: null, error: null };
+    try {
+      return { value: shiftDistances(state, Object.keys(paused), false), error: null };
+    } catch (e) {
+      return { value: null, error: e instanceof Error ? e.message : String(e) };
+    }
+  }, [state, paused, reg.state]);
 
   const stops = useMemo(() => {
     if (!state) return [];
@@ -73,6 +112,7 @@ export default function Shift() {
   const allDone = remaining.length === 0;
   const elapsed = state.startedAt ? now - state.startedAt : 0;
   const paperDay = state.deliveryDayIdx ?? paperDayIndex();
+  const savedM = (state.optimizations ?? []).reduce((t, o) => t + Math.max(0, o.beforeM - o.afterM), 0);
 
   const openNote = (s: Subscriber) => {
     setEditing(s);
@@ -129,7 +169,10 @@ export default function Shift() {
             try {
               const here = await getCurrentCoord();
               const r = await rerouteFrom(here, Object.keys(paused));
-              Alert.alert("Re-routed", `${r.stops} stop${r.stops === 1 ? "" : "s"} re-ordered from where you are.`);
+              Alert.alert(
+                "Re-routed",
+                `${r.stops} stop${r.stops === 1 ? "" : "s"} re-ordered from where you are.\n\nRemaining distance ${savingText(r.beforeM, r.afterM)}`,
+              );
             } catch (e) {
               Alert.alert("Couldn't re-route", e instanceof Error ? e.message : String(e));
             } finally {
@@ -207,6 +250,20 @@ export default function Shift() {
           <Text style={styles.headerStat}>{formatMoney(delivered.length * rateCents)} of {formatMoney(stops.length * rateCents)}</Text>
           <Text style={styles.headerStat}>{formatElapsed(elapsed)}</Text>
         </View>
+        {distances.value && (
+          <Text style={styles.headerSub}>
+            {kmText(distances.value.coveredM)} covered of {kmText(distances.value.plannedM)} planned
+            {savedM > 50 ? ` · saved ${kmText(savedM)}, ${minText(savedM)} by optimizing` : ""}
+          </Text>
+        )}
+        {distances.error && <Text style={styles.headerError}>Distance unavailable: {distances.error}</Text>}
+        {gps.on ? (
+          <Text style={styles.headerSub}>GPS: {kmText(gps.drivenM ?? 0)} moved so far{gps.error ? ` · ${gps.error}` : ""}</Text>
+        ) : (
+          <Pressable onPress={turnOnGps} hitSlop={8}>
+            <Text style={styles.headerWarn}>GPS recording is off{gps.error ? `: ${gps.error}` : ""}. Tap to turn it on.</Text>
+          </Pressable>
+        )}
       </View>
 
       {nextStop && !allDone && (
@@ -314,6 +371,9 @@ const styles = StyleSheet.create({
   headerRoutes: { color: "#888", fontSize: 12, letterSpacing: 1, flex: 1 },
   doneBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: "#facc15" },
   doneBtnText: { color: "#0a0a0a", fontSize: 13, fontWeight: "700" },
+  headerSub: { color: "#aaa", fontSize: 12, marginTop: 6 },
+  headerWarn: { color: "#facc15", fontSize: 12, marginTop: 6 },
+  headerError: { color: "#fca5a5", fontSize: 12, marginTop: 6 },
   headerRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 8 },
   headerStat: { color: "#f5f5f5", fontSize: 14, fontWeight: "600" },
   progressBar: { height: 6, backgroundColor: "#1a1a1a", borderRadius: 3, overflow: "hidden" },

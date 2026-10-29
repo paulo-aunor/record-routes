@@ -88,6 +88,7 @@
  ],
  "currentKm": 15.697,
  "newKm": 13.443,
- "modelKm": 13.391,
- "bakedOn": "2026-10-24"
+ "cutThroughPenaltyKm": 0,
+ "modelKm": null,
+ "bakedOn": "2026-10-29"
 }

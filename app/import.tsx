@@ -10,13 +10,30 @@ import { deriveRouteId, parseRouteListItems, type ParsedRoute, type ParseResult 
 import {
   carriedNotes, effectiveRoutes, isImportedRoute, knownCoordinates, registry, subscribersForRoutes, useRegistry,
 } from "@/lib/registry";
+import { plannedMeters } from "@/lib/headingData";
+import { kmText, savingText } from "@/lib/history";
+import { matrixIdFor } from "@/lib/matrixAlias";
 import { currentRouteOrder, useShift } from "@/lib/shift";
 import { usePdfExtractor } from "@/lib/usePdfExtractor";
+import type { Subscriber } from "@/types";
 
 const MAX_BYTES = 3 * 1024 * 1024;
 
 type Step = "idle" | "reading" | "review" | "locating" | "confirm" | "saved" | "error";
-type Found = { parsed: ParsedRoute; built: BuiltRoute; changes?: RouteChanges };
+// Road distance from the library of the route's order before the import and after it.
+type Distances = { beforeM: number; beforeHouses: number; afterM: number; afterHouses: number };
+type Found = { parsed: ParsedRoute; built: BuiltRoute; changes?: RouteChanges; distances?: Distances };
+
+function libraryDistance(subs: readonly Subscriber[], order: readonly string[]): number {
+  const byId = new Map(subs.map((x) => [x.id, x]));
+  return plannedMeters({
+    stopIds: order,
+    order,
+    coordOf: (x) => byId.get(x),
+    matrixIdOf: (x) => { const h = byId.get(x); return h ? matrixIdFor(h.address, h.city) : undefined; },
+    start: { kind: "library" },
+  });
+}
 type Mode = "update" | "replace";
 
 async function lookupJson(url: string): Promise<unknown> {
@@ -96,12 +113,21 @@ export default function ImportRoute() {
           if (c) known.set(addressKey(s.address, s.city), c);
         });
         await wait(30);   // let the screen update before ordering blocks the thread
-        if (modeFor(parsed.code, id) === "update") {
-          const existing = { subs: subscribersForRoutes([id]), order: await currentRouteOrder(id) };
-          const built = buildUpdatedRoute(parsed, geo.coords, Date.now(), carriedNotes(id), existing);
-          out.push({ parsed, built, changes: built.changes });
+        // the route as it stands, to say how the new order compares
+        const existingSubs = exists(id) ? subscribersForRoutes([id]) : [];
+        const existingOrder = existingSubs.length > 0 ? await currentRouteOrder(id) : null;
+        const measure = (built: BuiltRoute): Distances | undefined => existingOrder ? {
+          beforeM: libraryDistance(existingSubs, existingOrder),
+          beforeHouses: existingOrder.length,
+          afterM: libraryDistance(built.imported.subs, built.imported.seed),
+          afterHouses: built.imported.seed.length,
+        } : undefined;
+        if (modeFor(parsed.code, id) === "update" && existingOrder) {
+          const built = buildUpdatedRoute(parsed, geo.coords, Date.now(), carriedNotes(id), { subs: existingSubs, order: existingOrder });
+          out.push({ parsed, built, changes: built.changes, distances: measure(built) });
         } else {
-          out.push({ parsed, built: buildImportedRoute(parsed, geo.coords, Date.now(), carriedNotes(id)) });
+          const built = buildImportedRoute(parsed, geo.coords, Date.now(), carriedNotes(id));
+          out.push({ parsed, built, distances: measure(built) });
         }
       }
       setFound(out);
@@ -243,7 +269,7 @@ export default function ImportRoute() {
 
       {step === "confirm" && (
         <>
-          {found.map(({ parsed, built, changes }) => {
+          {found.map(({ parsed, built, changes, distances }) => {
             const id = built.imported.route.id;
             return (
               <View key={parsed.code} style={styles.card}>
@@ -254,6 +280,13 @@ export default function ImportRoute() {
                     : `${built.imported.subs.length} houses placed and ordered from the library`}
                 </Text>
                 <Text style={styles.cardNote}>{existingNote(parsed.code, id)}</Text>
+                {distances && (
+                  <Text style={styles.hint}>
+                    {distances.beforeHouses === distances.afterHouses
+                      ? `Route distance from the library ${savingText(distances.beforeM, distances.afterM)}`
+                      : `Route distance from the library: ${kmText(distances.afterM)} for ${distances.afterHouses} houses, was ${kmText(distances.beforeM)} for ${distances.beforeHouses}.`}
+                  </Text>
+                )}
                 {changes && changes.added.length > 0 && (
                   <View style={styles.listBox}>
                     <Text style={styles.listTitle}>Added, slotted in beside their nearest houses</Text>

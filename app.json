@@ -19,7 +19,10 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Record Routes uses your location to start a shift from where you are and to re-route the stops you have left."
+          "locationWhenInUsePermission": "Record Routes uses your location to start a shift from where you are and to re-route the stops you have left.",
+          "locationAlwaysAndWhenInUsePermission": "Record Routes records the distance you drive during a shift, even while Google Maps is open.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
         }
       ]
     ],

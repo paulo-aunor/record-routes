@@ -1,3 +1,4 @@
+import "@/lib/tracking";   // registers the background task that records the shift
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";

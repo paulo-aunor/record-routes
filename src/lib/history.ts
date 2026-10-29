@@ -10,6 +10,20 @@ import type { ShiftState } from "@/types";
 
 const KEY = "@rr/history/v1";
 
+// Driving speed used to turn a distance saved into minutes saved. About what the baked orders came to when
+// OSRM timed them (14.3 km in 37 min, 10.7 km in 26 min, 8.2 km in 20 min); it is an estimate, not a measurement.
+export const DRIVING_KMH = 24;
+export const minutesFor = (m: number): number => (m / 1000 / DRIVING_KMH) * 60;
+export const kmText = (m: number): string => `${(m / 1000).toFixed(1)} km`;
+export const minText = (m: number): string => `about ${Math.max(1, Math.round(minutesFor(m)))} min`;
+
+// "4.4 km to 3.6 km: saves 0.8 km, about 2 min", or says so when the new order isn't shorter.
+export function savingText(beforeM: number, afterM: number): string {
+  const saved = beforeM - afterM;
+  if (saved < 50) return `${kmText(afterM)} left; no shorter order than the one you had (${kmText(beforeM)}).`;
+  return `${kmText(beforeM)} to ${kmText(afterM)}: saves ${kmText(saved)}, ${minText(saved)}.`;
+}
+
 export type ShiftRecord = {
   id: string;                 // the start time, so a shift is only ever recorded once
   startedAt: number;
@@ -23,7 +37,11 @@ export type ShiftRecord = {
   skipped: number;
   stopped: number;            // houses on hold, left out
   rateCents: number;          // pay per delivered house when the shift finished
-  plannedM: number | null;    // planned road distance of the order; null when it started from a live location
+  plannedM: number | null;    // planned road distance of the whole order from where the shift started
+  coveredM: number | null;    // road distance along the houses delivered, in the order delivered; no drive home
+  drivenM: number | null;     // distance the phone actually moved, from the GPS recording; null when not recorded
+  savedM: number;             // distance saved by re-optimizing during the shift
+  optimizations: number;      // how many times the order was re-optimized
   startMode: "library" | "gps";
   byRoute: Record<string, { due: number; delivered: number }>;
 };
@@ -75,6 +93,8 @@ export type RecordContext = {
   stoppedIds: readonly string[];       // houses on hold when the shift ended
   rateCents: number;
   plannedM: number | null;
+  coveredM: number | null;
+  drivenM: number | null;
   finishedAt: number;
   routeOf: (houseId: string) => string | undefined;
 };
@@ -110,6 +130,10 @@ export function buildRecord(s: ShiftState, ctx: RecordContext): ShiftRecord {
     stopped: s.orderedIds.length - dueIds.length,
     rateCents: ctx.rateCents,
     plannedM: ctx.plannedM,
+    coveredM: ctx.coveredM,
+    drivenM: ctx.drivenM,
+    savedM: (s.optimizations ?? []).reduce((t, o) => t + Math.max(0, o.beforeM - o.afterM), 0),
+    optimizations: (s.optimizations ?? []).length,
     startMode: s.startMode ?? "library",
     byRoute,
   };
@@ -131,27 +155,43 @@ export type Totals = {
   housesPerHour: number | null;
   centsPerHour: number | null;
   plannedM: number | null;       // null when no shift has a planned distance
-  plannedPartial: boolean;       // some shifts started from a live location and have none
+  plannedPartial: boolean;       // some shifts have none
+  coveredM: number | null;
+  coveredPartial: boolean;
+  drivenM: number | null;        // GPS distance, summed over the shifts that were recorded
+  drivenPartial: boolean;
+  kmPerHouse: number | null;     // distance covered per house delivered
+  savedM: number;
+  optimizations: number;
 };
 
 export function totalsOf(records: readonly ShiftRecord[]): Totals {
   const t: Totals = {
     shifts: records.length, due: 0, delivered: 0, ticked: 0, counted: 0, skipped: 0, stopped: 0,
     payCents: 0, duePayCents: 0, hours: 0, housesPerHour: null, centsPerHour: null, plannedM: null, plannedPartial: false,
+    coveredM: null, coveredPartial: false, drivenM: null, drivenPartial: false, kmPerHouse: null, savedM: 0, optimizations: 0,
   };
-  let planned = 0, plannedN = 0;
+  let planned = 0, plannedN = 0, covered = 0, coveredN = 0, coveredHouses = 0, driven = 0, drivenN = 0;
   for (const r of records) {
     t.due += r.due; t.delivered += delivered(r); t.ticked += r.ticked; t.counted += r.counted;
     t.skipped += r.skipped; t.stopped += r.stopped;
     t.payCents += payCents(r); t.duePayCents += duePayCents(r);
     t.hours += (r.finishedAt - r.startedAt) / 3_600_000;
     if (r.plannedM === null) t.plannedPartial = true; else { planned += r.plannedM; plannedN++; }
+    if (r.coveredM === null) t.coveredPartial = true; else { covered += r.coveredM; coveredN++; coveredHouses += delivered(r); }
+    if (r.drivenM === null) t.drivenPartial = true; else { driven += r.drivenM; drivenN++; }
+    t.savedM += r.savedM; t.optimizations += r.optimizations;
   }
   if (t.hours > 0) {
     t.housesPerHour = t.delivered / t.hours;
     t.centsPerHour = t.payCents / t.hours;
   }
   if (plannedN > 0) t.plannedM = planned;
+  if (drivenN > 0) t.drivenM = driven;
+  if (coveredN > 0) {
+    t.coveredM = covered;
+    if (coveredHouses > 0) t.kmPerHouse = covered / 1000 / coveredHouses;
+  }
   return t;
 }
 
@@ -179,7 +219,8 @@ export async function loadHistory(): Promise<ShiftRecord[]> {
   if (!raw) return [];
   const v = JSON.parse(raw) as unknown;
   if (!Array.isArray(v)) throw new Error("The saved shift history isn't in the expected shape.");
-  return v as ShiftRecord[];
+  // records saved by an earlier version lack the newer fields
+  return (v as Partial<ShiftRecord>[]).map((r) => ({ coveredM: null, drivenM: null, savedM: 0, optimizations: 0, ...r })) as ShiftRecord[];
 }
 
 // Adding a shift that is already recorded replaces it, so finishing twice can't count it twice.
